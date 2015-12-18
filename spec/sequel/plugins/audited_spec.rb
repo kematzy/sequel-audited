@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
 require_relative '../../../lib/sequel/plugins/audited'
 
-class CurrentUserTest < Minitest::Spec
+class CurrentUserMethodTest < Minitest::Spec
   
   describe 'current_user' do
     
@@ -21,7 +21,7 @@ class CurrentUserTest < Minitest::Spec
   
 end
 
-class AuditedUserTest < Minitest::Spec
+class AuditedUserMethodTest < Minitest::Spec
   
   describe 'audited_user' do
     
