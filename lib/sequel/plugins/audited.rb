@@ -122,7 +122,7 @@ module Sequel
           
           # each included model will have an associated versions
           one_to_many(:versions, 
-                      class: :AuditLog, 
+                      class: ::Sequel::Audited.audited_model_name, 
                       key: :model_pk, 
                       conditions: { model_type: model.name.to_s }
                      )
@@ -178,7 +178,9 @@ module Sequel
         #   Post.audited_versions?   #=> true / false
         # 
         def audited_versions?
-          ::AuditLog.where(model_type: name.to_s).count >= 1
+          # ::AuditLog.where(model_type: name.to_s).count >= 1
+          const_get(::Sequel::Audited.audited_model_name)
+            .where(model_type: name.to_s).count >= 1
         end
         
         # grab all audits for a particular model based upon filters
@@ -196,7 +198,9 @@ module Sequel
         #     #=> filtered to older than last seven (7) days
         #     
         def audited_versions(opts = {})
-          ::AuditLog.where(opts.merge(model_type: self.name.to_s)).order(:version).all
+          # ::AuditLog.where(opts.merge(model_type: name.to_s)).order(:version).all
+          const_get(::Sequel::Audited.audited_model_name)
+            .where(opts.merge(model_type: name.to_s)).order(:version).all
         end
         
       end

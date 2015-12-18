@@ -9,7 +9,7 @@ module Sequel
     # set the name of the global method that provides the current user. Default: :current_user
     @audited_current_user_method = :current_user
     # enable swapping of 
-    @audited_model_name          = :AuditLog
+    @audited_model_name               = :AuditLog
     # toggle for 
     @audited_enabled             = true
     
