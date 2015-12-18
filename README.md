@@ -48,28 +48,9 @@ joe.audited_versions(:model => Post)
 
 ## Key Ideas
 
-###  Model & Primary_key
-
-Verify that every model can access a primary key value [field(s)] and then store that value.
-
-```ruby
-user = User[88]
-
-# 
-self.model & self.pk
-{ 
-  version: self.version + 1, 
-  model: self.model, 
-  pk: self.pk, 
-  changes: self.previous_changes.to_json, 
-  changed_by: self.updated_by || current_user.id, 
-  created_at: timestamps
-}
-```
 
 
 ### 
-
 
 
 
@@ -79,7 +60,7 @@ When you declare :audit_trail in your model, you get these methods:
 
 ```ruby
 class Widget < Sequel::Model
-  plugin :audited   # you can pass various options here
+  plugin :audited   # options here
 end
 
 # Returns this widget's audited_versions.  You can customise the name of the association.
@@ -135,6 +116,8 @@ TODO: Delete this and the text above, and describe your gem
 
 ## Installation
 
+### 1) Install the gem 
+
 Add this line to your application's Gemfile:
 
 ```ruby
@@ -148,6 +131,45 @@ And then execute:
 Or install it yourself as:
 
     $ gem install sequel-audited
+
+
+### 2)  Generate Migration
+
+In your apps Rakefile add the following:
+
+```ruby
+load 'tasks/sequel-audited/migrate.rake'
+```
+
+Then verify that the Rake task is available by calling:
+
+```bash
+bundle exec rake -T
+```
+
+which should output something like this:
+
+```bash
+....
+rake audited:migrate             # Installs Sequel::Audited migration, but does not run it.
+rake audited:migrate:install     # Installs Sequel::Audited migration, but does not run it.
+rake audited:migrate:update      # Updates existing Sequel::Audited migration files with amendments
+....
+```
+
+Run the sequel-audit rake task:
+
+```bash
+bundle exec rake audited:migrate
+```
+
+And then finally run db:migrate to update
+
+```bash
+bundle exec rake db:migrate
+```
+
+
 
 ## Usage
 
