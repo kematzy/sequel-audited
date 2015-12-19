@@ -1,43 +1,31 @@
 # 
 class AuditLog < Sequel::Model
-  
-  @current_audit_user_method = :current_user
-  
-  def self.current_audit_user_method
-    @current_audit_user_method
-  end
-
-  def self.current_audit_user_method=(user_method)
-    @current_audit_user_method = user_method
-  end
-  
   # handle versioning of audited records
   plugin :list, field: :version, scope: [:model_type, :model_pk]
   plugin :timestamps
   
-  # belongs_to :auditable,  polymorphic: true
-  # belongs_to :user,       polymorphic: true
-  # belongs_to :associated, polymorphic: true
-  # many_to_one :user
+  # TODO: see if we should add these
+  # many_to_one :associated, polymorphic: true
+  # many_to_one :user,       polymorphic: true
   
   def before_validation
     # grab the current user
-    # puts "::AuditLog.current_user_method=[#{::AuditLog.current_audit_user_method.inspect}]"
-    u = send(::AuditLog.current_audit_user_method)
-    # puts "user = [#{u.inspect}]"
+    u = get_audit_user
     self.user_id    = u.id
     self.username   = u.username
     self.user_type  = u.class.name
-    
-    # self.version = set_version_number + 1
   end
   
   # private
   
-  # def set_audit_user
-  #   self.user = Thread.current[:audited_user] if Thread.current[:audited_user]
-  #   nil # prevent stopping callback chains
-  # end
+  # Obtains the `current_user` based upon the `:audited_current_user_method' value set in the
+  # audited model, either via defaults or via :user_method config options
+  # 
+  # # NOTE! this allows overriding the default value on a per audited model
+  def get_audit_user
+    m = Kernel.const_get(self.model_type)
+    u = send(m.audited_current_user_method)
+  end
   
 end
 
