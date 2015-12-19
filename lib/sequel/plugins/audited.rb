@@ -10,10 +10,10 @@ class AuditLog < Sequel::Model
   
   def before_validation
     # grab the current user
-    u = get_audit_user
+    u = audit_user
     self.user_id    = u.id
     self.username   = u.username
-    self.user_type  = u.class.name
+    self.user_type  = u.class.name ||= :User
   end
   
   # private
@@ -22,9 +22,9 @@ class AuditLog < Sequel::Model
   # audited model, either via defaults or via :user_method config options
   # 
   # # NOTE! this allows overriding the default value on a per audited model
-  def get_audit_user
-    m = Kernel.const_get(self.model_type)
-    u = send(m.audited_current_user_method)
+  def audit_user
+    m = Kernel.const_get(model_type)
+    send(m.audited_current_user_method)
   end
   
 end
@@ -75,18 +75,10 @@ module Sequel
           plugin(:json_serializer)
           
           # set the default ignored columns or revert to defaults
-          if opts[:default_ignored_columns]
-            @audited_default_ignored_columns = opts[:default_ignored_columns]
-          else
-            @audited_default_ignored_columns = ::Sequel::Audited.audited_default_ignored_columns
-          end
+          set_default_ignored_columns(opts)
           # sets the name of the current User method or revert to default: :current_user 
           # specifically for the audited model on a per model basis
-          if opts[:user_method]
-            @audited_current_user_method = opts[:user_method]
-          else
-            @audited_current_user_method = ::Sequel::Audited.audited_current_user_method
-          end
+          set_user_method(opts)
           
           only    = opts.fetch(:only, [])
           except  = opts.fetch(:except, [])
@@ -97,24 +89,29 @@ module Sequel
             # subtract the 'only' columns from all columns to get excluded_columns
             excluded_columns = columns - included_columns
           else # except:
-            # all columns minus excepted columns and default ignored columns
-            included_columns = [[columns - [except].flatten].flatten - @audited_default_ignored_columns].flatten.uniq
+            # all columns minus any excepted columns and default ignored columns
+            included_columns = [
+              [columns - [except].flatten].flatten - @audited_default_ignored_columns
+            ].flatten.uniq
             
-            excluded_columns = except.empty? ? [] : [except].flatten
+            # except_columns = except.empty? ? [] : [except].flatten
             excluded_columns = [columns - included_columns].flatten.uniq
+            # excluded_columns = [columns - [except_columns, included_columns].flatten].flatten.uniq
           end
           
           @audited_included_columns = included_columns
           @audited_ignored_columns  = excluded_columns
           
           # each included model will have an associated versions
-          one_to_many(:versions, 
-                      class: ::Sequel::Audited.audited_model_name, 
-                      key: :model_pk, 
-                      conditions: { model_type: model.name.to_s }
-                     )
+          one_to_many(
+            :versions, 
+            class: audit_model_name, 
+            key: :model_pk, 
+            conditions: { model_type: model.name.to_s }
+          )
           
         end
+        
         
       end
       
@@ -123,16 +120,16 @@ module Sequel
         
         attr_accessor :audited_default_ignored_columns, :audited_current_user_method
         # The holder of ignored columns
-        attr_accessor :audited_ignored_columns
+        attr_reader :audited_ignored_columns
         # The holder of columns that should be audited
-        attr_accessor :audited_included_columns
+        attr_reader :audited_included_columns
         
         
-        Plugins.inherited_instance_variables(self, 
-                                             :@audited_default_ignored_columns  => nil,
-                                             :@audited_current_user_method      => nil,
-                                             :@audited_included_columns         => nil, 
-                                             :@audited_ignored_columns          => nil
+        Plugins.inherited_instance_variables(self,
+                                             :@audited_default_ignored_columns => nil,
+                                             :@audited_current_user_method     => nil,
+                                             :@audited_included_columns        => nil,
+                                             :@audited_ignored_columns         => nil
                                             )
         
         def non_audited_columns
@@ -142,11 +139,6 @@ module Sequel
         def audited_columns
           @audited_columns ||= columns - @audited_ignored_columns
         end
-        
-        def default_ignored_columns
-          @audited_default_ignored_columns
-        end
-        
         
         # def default_ignored_attrs
         #   # TODO: how to reference the models primary_key value??
@@ -184,12 +176,33 @@ module Sequel
         end
         
         
-        
         private 
         
+        
         def audit_model
-          m ||= const_get(::Sequel::Audited.audited_model_name)
+          const_get(audit_model_name)
         end
+        
+        def audit_model_name
+          ::Sequel::Audited.audited_model_name
+        end
+        
+        def set_default_ignored_columns(opts)
+          if opts[:default_ignored_columns]
+            @audited_default_ignored_columns = opts[:default_ignored_columns]
+          else
+            @audited_default_ignored_columns = ::Sequel::Audited.audited_default_ignored_columns
+          end
+        end
+        
+        def set_user_method(opts)
+          if opts[:user_method]
+            @audited_current_user_method = opts[:user_method]
+          else
+            @audited_current_user_method = ::Sequel::Audited.audited_current_user_method
+          end
+        end
+        
       end
       
       
