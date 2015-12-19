@@ -68,11 +68,11 @@ class SequelAuditedPluginTest < Minitest::Spec
         
       end
       
-      describe '#default_ignored_attrs' do
+      describe '#audited_default_ignored_columns' do
         
         [:lock_version, :created_at, :updated_at, :created_on, :updated_on].each do |m|
           it "should include: #{m}" do
-            @p.default_ignored_attrs.must_include(m)
+            @p.audited_default_ignored_columns.must_include(m)
           end
           
         end
@@ -205,14 +205,14 @@ class SequelAuditedPluginTest < Minitest::Spec
         
       end
       
-      describe 'Post.plugin(:audited, :default_ignored_attrs => [])' do
+      describe 'Post.plugin(:audited, :default_ignored_columns => [])' do
         before do
           @p = Class.new(Post)
-          @p.plugin(:audited, default_ignored_attrs: [:title, :author_id])
+          @p.plugin(:audited, default_ignored_columns: [:title, :author_id])
         end
         
-        it '#default_ignored_attrs should return the custom value' do
-          @p.default_ignored_attrs.must_equal [:title, :author_id]
+        it '#audited_default_ignored_columns should return the custom value' do
+          @p.audited_default_ignored_columns.must_equal [:title, :author_id]
         end
         
         it '#audited_columns should return the correct columns' do
@@ -375,16 +375,16 @@ class SequelAuditedPluginTest < Minitest::Spec
   
   describe 'with Custom user method' do
     before do
-      Author.plugin(:audited, only: :name)
+      Author.plugin(:audited, only: :name, user_method: :audited_user)
     end
     
     it 'should' do
-      ::AuditLog.current_audit_user_method = :audited_user
+      # ::AuditLog.audited_current_user_method = :audited_user
       a = Author.create(name: 'Kematzy')
-      a.versions.must_equal ''
-      # v = a.versions.first
+      # a.versions.must_equal ''
+      v = a.versions.first
       v.username.must_equal 'auditeduser'
-      ::AuditLog.current_audit_user_method = :current_user
+      # ::AuditLog.audited_current_user_method = :current_user
     end
   
   end

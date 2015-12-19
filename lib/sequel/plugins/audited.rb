@@ -66,7 +66,7 @@ module Sequel
     # 
     # 
     module Audited
-            
+      
       # called when 
       def self.configure(model, opts = {})
         model.instance_eval do
@@ -74,16 +74,19 @@ module Sequel
           plugin(:dirty)
           plugin(:json_serializer)
           
-          attr_accessor :audited_default_ignored_attrs, :current_user_method
-          # by default ignore these attributes
-          ignored_vars = [
-            # :id, :ref, :password, :password_hash, 
-            :lock_version, 
-            :created_at, :updated_at, :created_on, :updated_on
-          ]
-          @audited_default_ignored_attrs = opts[:default_ignored_attrs] ||= ignored_vars
-          # sets the name of User method
-          @audited_current_user_method = opts[:user_method] ||= :current_user
+          # set the default ignored columns or revert to defaults
+          if opts[:default_ignored_columns]
+            @audited_default_ignored_columns = opts[:default_ignored_columns]
+          else
+            @audited_default_ignored_columns = ::Sequel::Audited.audited_default_ignored_columns
+          end
+          # sets the name of the current User method or revert to default: :current_user 
+          # specifically for the audited model on a per model basis
+          if opts[:user_method]
+            @audited_current_user_method = opts[:user_method]
+          else
+            @audited_current_user_method = ::Sequel::Audited.audited_current_user_method
+          end
           
           only    = opts.fetch(:only, [])
           except  = opts.fetch(:except, [])
@@ -95,16 +98,12 @@ module Sequel
             excluded_columns = columns - included_columns
           else # except:
             # all columns minus excepted columns and default ignored columns
-            included_columns = [[columns - [except].flatten].flatten - @audited_default_ignored_attrs].flatten.uniq
+            included_columns = [[columns - [except].flatten].flatten - @audited_default_ignored_columns].flatten.uniq
             
             excluded_columns = except.empty? ? [] : [except].flatten
             excluded_columns = [columns - included_columns].flatten.uniq
           end
           
-          # puts "\nwhen opts=[#{opts.inspect}]"
-          # puts "-- included_columns=[#{included_columns.inspect}]"
-          # puts "-- excluded_columns=[#{excluded_columns.inspect}]"
-          # puts "end\n"
           @audited_included_columns = included_columns
           @audited_ignored_columns  = excluded_columns
           
@@ -121,22 +120,19 @@ module Sequel
       
       # 
       module ClassMethods
-        #
-        attr_accessor :audited_current_user_method
-        # # The column holding the version number in the table
-        # attr_accessor :version_field
-        # The holder of columns that should be audited
-        attr_accessor :audited_columns
+        
+        attr_accessor :audited_default_ignored_columns, :audited_current_user_method
         # The holder of ignored columns
         attr_accessor :audited_ignored_columns
+        # The holder of columns that should be audited
         attr_accessor :audited_included_columns
         
         
         Plugins.inherited_instance_variables(self, 
-                                             :@audited_default_ignored_attrs => nil,
-                                             :@audited_current_user_method   => nil,
-                                             :@audited_included_columns      => nil, 
-                                             :@audited_ignored_columns       => nil
+                                             :@audited_default_ignored_columns  => nil,
+                                             :@audited_current_user_method      => nil,
+                                             :@audited_included_columns         => nil, 
+                                             :@audited_ignored_columns          => nil
                                             )
         
         def non_audited_columns
@@ -147,8 +143,8 @@ module Sequel
           @audited_columns ||= columns - @audited_ignored_columns
         end
         
-        def default_ignored_attrs
-          @audited_default_ignored_attrs
+        def default_ignored_columns
+          @audited_default_ignored_columns
         end
         
         
@@ -166,9 +162,7 @@ module Sequel
         #   Post.audited_versions?   #=> true / false
         # 
         def audited_versions?
-          # ::AuditLog.where(model_type: name.to_s).count >= 1
-          const_get(::Sequel::Audited.audited_model_name)
-            .where(model_type: name.to_s).count >= 1
+          audit_model.where(model_type: name.to_s).count >= 1
         end
         
         # grab all audits for a particular model based upon filters
@@ -186,11 +180,16 @@ module Sequel
         #     #=> filtered to older than last seven (7) days
         #     
         def audited_versions(opts = {})
-          # ::AuditLog.where(opts.merge(model_type: name.to_s)).order(:version).all
-          const_get(::Sequel::Audited.audited_model_name)
-            .where(opts.merge(model_type: name.to_s)).order(:version).all
+          audit_model.where(opts.merge(model_type: name.to_s)).order(:version).all
         end
         
+        
+        
+        private 
+        
+        def audit_model
+          m ||= const_get(::Sequel::Audited.audited_model_name)
+        end
       end
       
       
@@ -199,13 +198,14 @@ module Sequel
         
         # Returns who put the post into its current state.
         #   
-        #   post.blame  
+        #   post.blame  # => 'joeblogs'
         #   
-        #   post.audited_by  => self.versions.last
+        #   post.last_audited_by  # => 'joeblogs'
+        # 
         def blame
           versions.last.username || 'unknown'
         end
-        alias_method :audited_by, :blame
+        alias_method :last_audited_by, :blame
         
         
         private
@@ -214,9 +214,10 @@ module Sequel
         def extract_audited_values
         end
         
+        ### CALLBACKS ###
+        
         def after_create
           super
-          # changed =  self.values || 'null'
           changed = column_changes.empty? ? previous_changes : column_changes
           # :user, :version & :created_at set in model
           add_version(
