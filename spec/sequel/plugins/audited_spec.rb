@@ -243,6 +243,7 @@ class SequelAuditedPluginTest < Minitest::Spec
   describe 'An audited Model :Author' do
     before do
       Author.plugin(:audited, only: :name)
+      Category.plugin(:audited, only: :name)
     end
     
     describe 'Class Methods' do
