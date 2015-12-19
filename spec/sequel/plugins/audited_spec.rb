@@ -80,8 +80,19 @@ class SequelAuditedPluginTest < Minitest::Spec
       end
       
       describe '#audited_current_user_method' do
+        
         it 'should return the default value: :current_user' do
           @p.audited_current_user_method.must_equal :current_user
+        end
+        
+        it 'should use the :current_user User' do
+          Category.plugin(:audited)
+          c = Category.create(name: 'Category 5')
+          # c.must_equal ''
+          assert c.valid?
+          v = c.versions.first
+          # v.must_equal ''
+          v.username.must_equal User[1].username
         end
       end
       
@@ -236,7 +247,7 @@ class SequelAuditedPluginTest < Minitest::Spec
     
     describe 'Class Methods' do
       
-      describe 'Author.audited_versions?' do
+      describe '#.audited_versions?' do
         before do
           ::AuditLog.where(model_type: 'Author').delete
         end
@@ -285,12 +296,12 @@ class SequelAuditedPluginTest < Minitest::Spec
         
       end
       
-      describe 'Author.audited_versions' do
-        before do
-          ::AuditLog.where(model_type: 'Author').delete
-        end
+      describe '#.audited_versions' do
         
         describe 'without options' do
+          before do
+            ::AuditLog.where(model_type: 'Author').delete
+          end
           
           it 'should return an empty array when no versions exists' do
             Author.audited_versions.must_equal []
@@ -306,53 +317,240 @@ class SequelAuditedPluginTest < Minitest::Spec
             al.model_pk.must_equal a.id
           end
           
-          # it 'shouldadasfa' do
-          #   Author.first.methods.sort.must_equal ''
-          # end
-          
         end
         
         describe 'with options' do
           before do
-            @u = User.create(username: 'johnblogs', name: 'John Blogs', email: 'john@blogs.com')
-          end
-          
-          it 'should ' do
-            $current_user = @u
-            a = Author.create(name: 'Kematzy')
-            v = a.versions.first
-            v.username.must_equal 'johnblogs'
-            $current_user = User[1]
-          end
-          
-          it 'should ' do
-            # current_user.must_equal ''
-            $current_user = User[2]  # jane
+            ::AuditLog.where(model_type: 'Author').destroy
+            ::AuditLog.where(model_type: 'Category').destroy
             
-            a = Author.create(name: 'Kematzy')
-            v = a.versions.first
-            v.username.must_equal 'janeblogs'
-            $current_user = User[1]
+            %w(a b c d).each do |n|
+              Author.create(name: "Joe #{n}")
+              Category.create(name: "Category #{n}")
+            end
+            @pkA = Author.last
+            @pkC = Category.last
+          end
+          
+          describe '(username: ??)' do
+            
+            it 'should return an empty array when given a user without audits' do
+              Author.audited_versions(username: 'janeblogs').must_equal []
+              Author.audited_versions(username: 'janeblogs').count.must_equal 0
+            end
+            
+            it 'should return found audits when given a user with audits' do
+              # AuditLog.all.must_equal ''
+              Author.audited_versions(username: 'joeblogs').count.must_equal 4
+            end
+            
+            it 'should return the correct number of versions of another audited user' do
+              $current_user = User[2]
+              Author.last.update(name: "User 2")
+              Category.last.update(name: "User 2")
+              $current_user = User[1] # reset
+              
+              Author.audited_versions(username: 'janeblogs').count.must_equal 1
+              AuditLog.where(username: 'janeblogs').count.must_equal 2
+            end
+            
+          end
+          
+          describe '(model_pk: ??)' do
+            
+            it 'should return an empty array when given a model primary key without audits' do
+              Author.audited_versions(model_pk: 999).must_equal []
+              Author.audited_versions(model_pk: 999).count.must_equal 0
+            end
+            
+            it 'should return found audits when given an audited primary key' do
+              Author.audited_versions(model_pk: @pkA.id).count.must_equal 1
+              Category.audited_versions(model_pk: @pkC.id).count.must_equal 1
+            end
+            
+          end
+          
+          describe '(created_at: ???)' do
+            
+            it 'should return an empty array when given a time without audits' do
+              Author.audited_versions(created_at: Time.now - 1 ).must_equal []
+              Author.audited_versions(created_at: Time.now - 1 ).count.must_equal 0
+            end
+            
+            it 'should return an array when given a time with audits' do
+              skip('TODO: have to add TimeCop here to test the time issues')
+              Author.audited_versions(created_at: Time.now).must_equal []
+              Author.audited_versions(created_at: Time.now).count.must_equal 1
+            end
+            
           end
           
         end
         
       end
       
-      describe 'something' do
-        
+      describe '#.audited_default_ignored_columns' do
+        it 'should have some tests' do
+          skip('need tests')
+        end
       end
+      
+      describe '#.audited_current_user_method' do
+        it 'should have some tests' do
+          skip('need tests')
+        end
+      end
+      
+      describe '#.audited_ignored_columns' do
+        it 'should have some tests' do
+          skip('need tests')
+        end
+      end
+      
+      describe '#.audited_included_columns' do
+        it 'should have some tests' do
+          skip('need tests')
+        end
+      end
+      
+      # attr_accessor :audited_default_ignored_columns, :audited_current_user_method
+      # # The holder of ignored columns
+      # attr_accessor :audited_ignored_columns
+      # # The holder of columns that should be audited
+      # attr_accessor :audited_included_columns
       
     end
     
     describe 'Instance Methods' do
       
+      describe '#.blame (aliased as: #.last_audited_by)' do
+        
+        it "should return 'not audited' if no previous version" do
+          a = Author.new
+          a.blame.must_equal 'not audited'
+          a.last_audited_by.must_equal 'not audited'
+        end
+        
+        it "should return the username of the last version" do
+          a = Author.create(name: 'Jane')
+          a.blame.must_equal 'joeblogs' # default
+          a.last_audited_by.must_equal 'joeblogs'
+        end
+      end
+      
+      describe '#.last_audited_at (aliased as: #.last_audited_on)' do
+        
+        it "should return 'not audited' if no previous version" do
+          a = Author.new
+          a.last_audited_at.must_equal 'not audited'
+          a.last_audited_on.must_equal 'not audited'
+        end
+        
+        it "should return the created_at time of the last version" do
+          a = Author.create(name: 'Jane')
+          a.last_audited_at.must_be_kind_of(Time)
+          a.last_audited_at.to_s.must_match(/#{Time.now.strftime('%Y-%m-%d')}/)
+        end
+      end
+      
+      describe 'Hooks' do
+        before do
+          Category.plugin(:audited, only: [:name])
+        end
+        
+        describe 'when creating a record, triggering #.after_create' do
+          
+          it 'should save an audited version' do
+            c = Category.new(name: 'Category 5')
+            c.versions.must_equal []
+            c.versions.count.must_equal 0
+            c.save
+            c.versions.count.must_equal 1
+            
+            v = c.versions.first
+            v.version.must_equal 1
+            v.event.must_equal 'create'
+            v.model_type.must_equal c.class.to_s
+            v.model_pk.must_equal c.id
+            v.changed.wont_equal ''
+            # v.changed.must_equal c.values.to_json
+          end
+          
+        end
+        
+        describe 'when updating a record, triggering #.after_update' do
+          
+          it 'should save an audited version with changes only' do
+            c = Category.create(name: 'Category 5')
+            assert c.valid?
+            c.versions.count.must_equal 1
+            
+            c.update(name: 'Category 5 updated')
+            c.versions.count.must_equal 2
+            
+            v = c.versions.last
+            v.version.must_equal 2
+            v.event.must_equal 'update'
+            v.model_type.must_equal c.class.to_s
+            v.model_pk.must_equal c.id
+            v.changed.must_match(/\"name\":\[\"Category 5\",\"Category 5 updated\"\]/)
+          end
+          
+        end
+        
+        describe 'when destroying a record, triggering #.after_destroy' do
+          
+          it 'should save an audited version with all values' do
+            c = Category.create(name: 'Category 5')
+            assert c.valid?
+            c.versions.count.must_equal 1
+            
+            c.update(name: 'Category 5 updated')
+            c.versions.count.must_equal 2
+            
+            c.destroy
+            c.versions.count.must_equal 3
+            
+            v = c.versions.last
+            v.version.must_equal 3
+            v.event.must_equal 'destroy'
+            v.model_type.must_equal c.class.to_s
+            v.model_pk.must_equal c.id
+            v.changed.must_equal c.values.to_json
+            # JSON.parse(v.changed).must_equal c.values.to_json
+          end
+          
+        end
+        
+      end
       
     end
     
     describe 'should have associated versions' do
       
       it { assert_association_one_to_many(Author.new, :versions) }
+      
+      before do
+        @u = User.create(username: 'johnblogs', name: 'John Blogs', email: 'john@blogs.com')
+      end
+      
+      it 'should ' do
+        $current_user = @u
+        a = Author.create(name: 'Kematzy')
+        v = a.versions.first
+        v.username.must_equal 'johnblogs'
+        $current_user = User[1]
+      end
+      
+      it 'should ' do
+        # current_user.must_equal ''
+        $current_user = User[2]  # jane
+        
+        a = Author.create(name: 'Kematzy')
+        v = a.versions.first
+        v.username.must_equal 'janeblogs'
+        $current_user = User[1]
+      end
       
       it 'should return 0 when no version have been saved' do
         

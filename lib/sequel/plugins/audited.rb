@@ -215,10 +215,27 @@ module Sequel
         #   
         #   post.last_audited_by  # => 'joeblogs'
         # 
+        # Note! returns 'not audited' if there's no audited version (new unsaved record)
+        # 
         def blame
-          versions.last.username || 'unknown'
+          v = versions.last unless versions.empty?
+          v ? v.username : 'not audited'
         end
         alias_method :last_audited_by, :blame
+        
+        # Returns who put the post into its current state.
+        #   
+        #   post.last_audited_at  # => '2015-12-19 @ 08:24:45'
+        #   
+        #   post.last_audited_on  # => 'joeblogs'
+        # 
+        # Note! returns 'not audited' if there's no audited version (new unsaved record)
+        # 
+        def last_audited_at
+          v = versions.last unless versions.empty?
+          v ? v.created_at : 'not audited'
+        end
+        alias_method :last_audited_on, :last_audited_at
         
         
         private
@@ -231,7 +248,8 @@ module Sequel
         
         def after_create
           super
-          changed = column_changes.empty? ? previous_changes : column_changes
+          # changed = column_changes.empty? ? previous_changes : column_changes
+          changed =  self.values
           # :user, :version & :created_at set in model
           add_version(
             model_type: model,
