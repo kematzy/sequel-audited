@@ -1,3 +1,6 @@
+require 'dotenv'
+Dotenv.load(File.expand_path('../../.env.test', __FILE__))
+
 ENV['RACK_ENV'] = 'test'
 if ENV['COVERAGE']
   require File.join(File.dirname(File.expand_path(__FILE__)), 'sequel_audited_coverage')
@@ -13,17 +16,26 @@ require 'pg'
 require 'minitest/sequel'
 require 'minitest/autorun'
 require 'minitest/hooks/default'
+class Minitest::HooksSpec
+  def around
+    Sequel::Model.db.transaction(rollback: :always, auto_savepoint: true) { super }
+  end
+end
+
 require 'minitest/assert_errors'
 require 'minitest/rg'
 
-
+Sequel.extension(:core_extensions)
 # Auto-manage created_at/updated_at fields
 Sequel::Model.plugin(:timestamps)
 # The preferred default validations plugin, which uses instance-level methods.
 # Sequel::Model.plugin(:validation_helpers)
 
-DB = Sequel.sqlite # :memory
-# DB = Sequel.connect("sqlite://#{File.dirname(__FILE__)}/test.db")# :memory
+# DB = Sequel.sqlite # :memory
+DB = Sequel.connect(ENV['DATABASE_URL'])
+
+puts "Using DB=[#{ENV['DATABASE_URL']}]"
+
 
 DB.create_table?(:users) do
   primary_key :id
@@ -178,15 +190,3 @@ co4 = Comment.create(title: 'Comment 4', body: 'Comment 4 body', post_id: p2.id)
 co5 = Comment.create(title: 'Comment 5', body: 'Comment 5 body', post_id: p2.id)
 co6 = Comment.create(title: 'Comment 6', body: 'Comment 6 body', post_id: p2.id)
 
-
-class Minitest::HooksSpec
-  
-  around(:all) do |&block|
-    DB.transaction(rollback: :always) { super(&block) }
-  end
-
-  around do |&block|
-    DB.transaction(rollback: :always, savepoint: true, auto_savepoint: true) { super(&block) }
-  end
-
-end
