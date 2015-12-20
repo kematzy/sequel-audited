@@ -45,7 +45,7 @@ end
 DB.create_table!(:audit_logs) do
   primary_key :id
   column :model_type,       :text
-  column :model_pk,         :integer
+  column :model_pk,         :text  # NOTE! changed to :text from :integer
   column :event,            :text
   column :changed,          :text
   column :version,          :integer, default: 0
