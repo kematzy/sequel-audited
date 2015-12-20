@@ -1,18 +1,19 @@
 # Sequel::Audited
 
-Model auditing (a.k.a: record versioning) for DB scenarios when DB triggers are not possible. 
-(ie: on a web app on Heroku).
-
-**sequel-audited** is a [Sequel](http://sequel.jeremyevans.net/) plugin that logs all changes made 
-to an audited model, including who created, updated and destroyed the record, and what was changed 
+**sequel-audited** is a [Sequel](http://sequel.jeremyevans.net/) plugin that logs changes made to an 
+audited model, including who created, updated and destroyed the record, and what was changed 
 and when the change was made. 
+
+This plugin provides model auditing (a.k.a: record versioning) for DB scenarios when DB triggers 
+are not possible. (ie: on a web app on Heroku).
+
 
 
 ## Disclaimer
 
-This is still **work-in-progress**, and therefore **not production ready**, so **use with care** 
+This is still **work-in-progress**, and therefore **NOT production ready**, so **use with care** 
 and test thoroughly before depending upon this gem for mission-critical stuff! 
-You have been warned! No warranties expressed or implied!
+You have been warned! No warranties and guarantees expressed or implied!
 
 <br>
 
