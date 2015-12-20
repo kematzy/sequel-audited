@@ -315,7 +315,7 @@ class SequelAuditedPluginTest < Minitest::Spec
             # al.must_equal ''
             al.must_be_kind_of(::AuditLog)
             al.model_type.must_equal 'Author'
-            al.model_pk.must_equal a.id
+            al.model_pk.must_equal a.id.to_s
           end
           
         end
@@ -360,13 +360,13 @@ class SequelAuditedPluginTest < Minitest::Spec
           describe '(model_pk: ??)' do
             
             it 'should return an empty array when given a model primary key without audits' do
-              Author.audited_versions(model_pk: 999).must_equal []
-              Author.audited_versions(model_pk: 999).count.must_equal 0
+              Author.audited_versions(model_pk: '999').must_equal []
+              Author.audited_versions(model_pk: '999').count.must_equal 0
             end
             
             it 'should return found audits when given an audited primary key' do
-              Author.audited_versions(model_pk: @pkA.id).count.must_equal 1
-              Category.audited_versions(model_pk: @pkC.id).count.must_equal 1
+              Author.audited_versions(model_pk: @pkA.id.to_s).count.must_equal 1
+              Category.audited_versions(model_pk: @pkC.id.to_s).count.must_equal 1
             end
             
           end
@@ -472,7 +472,7 @@ class SequelAuditedPluginTest < Minitest::Spec
             v.version.must_equal 1
             v.event.must_equal 'create'
             v.model_type.must_equal c.class.to_s
-            v.model_pk.must_equal c.id
+            v.model_pk.must_equal c.id.to_s
             v.changed.wont_equal ''
             # v.changed.must_equal c.values.to_json
           end
@@ -493,7 +493,7 @@ class SequelAuditedPluginTest < Minitest::Spec
             v.version.must_equal 2
             v.event.must_equal 'update'
             v.model_type.must_equal c.class.to_s
-            v.model_pk.must_equal c.id
+            v.model_pk.must_equal c.id.to_s
             v.changed.must_match(/\"name\":\[\"Category 5\",\"Category 5 updated\"\]/)
           end
           
@@ -516,7 +516,7 @@ class SequelAuditedPluginTest < Minitest::Spec
             v.version.must_equal 3
             v.event.must_equal 'destroy'
             v.model_type.must_equal c.class.to_s
-            v.model_pk.must_equal c.id
+            v.model_pk.must_equal c.id.to_s
             v.changed.must_equal c.values.to_json
             # JSON.parse(v.changed).must_equal c.values.to_json
           end

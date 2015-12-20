@@ -253,7 +253,7 @@ module Sequel
           # :user, :version & :created_at set in model
           add_version(
             model_type: model,
-            model_pk:   pk,
+            model_pk:   Sequel.cast(pk, String),
             event:      'create',
             changed:    changed.to_json
           )
@@ -265,7 +265,7 @@ module Sequel
           # :user, :version & :created_at set in model
           add_version(
             model_type:  model,
-            model_pk:    pk,
+            model_pk:    Sequel.cast(pk, String),
             event:       'update',
             changed:     changed.to_json
           )
@@ -276,7 +276,7 @@ module Sequel
           # :user, :version & :created_at set in model
           add_version(
             model_type:  model,
-            model_pk:    pk,
+            model_pk:    Sequel.cast(pk, String),
             event:       'destroy',
             changed:     self.to_json
           )

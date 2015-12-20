@@ -551,3 +551,425 @@ Expected: 38
 You have skipped tests. Run with --verbose for details.
 rake aborted!
 ```
+
+<br>
+
+----
+## After second commit
+----
+
+<br>
+
+
+## 4) SQLite3 test run
+
+### with `DB[:audit_log].model_pk` column as `:text` and all expectations converted to strings
+
+```bash
+07:32:27 [rerun] Change detected: 1 modified: audited_spec.rb
+07:32:27 [rerun] Sending signal TERM to 64364
+
+07:32:27 [rerun] Sequel-audited restarted
+Using DB=[sqlite://spec/sequel-audited-test.db]  # NOTE! SQLite3 used
+Run options: --seed 1840
+
+# Running:
+
+.................S..SS...................S........S...................
+
+Finished in 0.680908s, 102.8040 runs/s, 189.4530 assertions/s.
+
+70 runs, 129 assertions, 0 failures, 0 errors, 5 skips
+
+You have skipped tests. Run with --verbose for details.
+
+07:32:33 [rerun] Sequel-audited succeeded
+```
+
+
+## 5) PostgresSQL test run
+
+### with `DB[:audit_log].model_pk` column as `:text` and all expectations converted to strings
+
+
+
+```bash
+07:32:51 [rerun] Restarting
+07:32:51 [rerun] Sending signal TERM to 64507
+
+07:32:52 [rerun] Sequel-audited restarted
+Using DB=[postgres://kematzy@localhost/sequel-audited-test]  # NOTE! postgres used
+Run options: --seed 60094
+
+# Running:
+
+..................E......S.SSSE.E.E.....E.................EE...S..EEE.
+
+Finished in 0.518964s, 134.8842 runs/s, 179.2033 assertions/s.
+
+  1) Error:
+An audited Model :Author::Instance Methods::#.blame (aliased as: #.last_audited_by)#test_0002_should return the username of the last version:
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ...el_type" = 'Author') AND ("audit_logs"."model_pk" = 12)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/lib/sequel/plugins/audited.rb:221:in `blame'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:437:in `block (4 levels) in <class:SequelAuditedPluginTest>'
+
+
+  2) Error:
+An audited Model :Author::Instance Methods::Hooks::when updating a record, triggering #.after_update#test_0001_should save an audited version with changes only:
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ..._type" = 'Category') AND ("audit_logs"."model_pk" = 21)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:487:in `block (5 levels) in <class:SequelAuditedPluginTest>'
+
+
+  3) Error:
+configuration::without options passed::#audited_current_user_method#test_0002_should use the :current_user User:
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ..._type" = 'Category') AND ("audit_logs"."model_pk" = 22)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:93:in `block (4 levels) in <class:SequelAuditedPluginTest>'
+
+
+  4) Error:
+with Custom user method#test_0001_should:
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ...el_type" = 'Author') AND ("audit_logs"."model_pk" = 21)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:584:in `block (2 levels) in <class:SequelAuditedPluginTest>'
+
+
+  5) Error:
+An audited Model :Author::Instance Methods::Hooks::when destroying a record, triggering #.after_destroy#test_0001_should save an audited version with all values:
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ..._type" = 'Category') AND ("audit_logs"."model_pk" = 24)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:507:in `block (5 levels) in <class:SequelAuditedPluginTest>'
+
+
+  6) Error:
+An audited Model :Author::should have associated versions#test_0002_should :
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ...el_type" = 'Author') AND ("audit_logs"."model_pk" = 34)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:541:in `block (3 levels) in <class:SequelAuditedPluginTest>'
+
+
+  7) Error:
+An audited Model :Author::should have associated versions#test_0003_should :
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ...el_type" = 'Author') AND ("audit_logs"."model_pk" = 35)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:551:in `block (3 levels) in <class:SequelAuditedPluginTest>'
+
+
+  8) Error:
+An audited Model :Author::Class Methods::#.audited_versions?#test_0003_should return true if multiple versions have been created:
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ...el_type" = 'Author') AND ("audit_logs"."model_pk" = 36)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:271:in `block (4 levels) in <class:SequelAuditedPluginTest>'
+
+
+  9) Error:
+An audited Model :Author::Class Methods::#.audited_versions?#test_0002_should return true if one version have been created:
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ...el_type" = 'Author') AND ("audit_logs"."model_pk" = 37)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:263:in `block (4 levels) in <class:SequelAuditedPluginTest>'
+
+
+ 10) Error:
+An audited Model :Author::Instance Methods::#.last_audited_at (aliased as: #.last_audited_on)#test_0002_should return the created_at time of the last version:
+Sequel::DatabaseError: PG::UndefinedFunction: ERROR:  operator does not exist: text = integer
+LINE 1: ...el_type" = 'Author') AND ("audit_logs"."model_pk" = 38)) ORD...
+                                                             ^
+HINT:  No operator matches the given name and argument type(s). You might need to add explicit type casts.
+
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `async_exec'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `block in execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/logging.rb:33:in `log_yield'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:184:in `execute_query'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:147:in `check_disconnect_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:171:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:524:in `_execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block (2 levels) in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:545:in `check_database_errors'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `block in execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `block in synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/connection_pool/threaded.rb:103:in `hold'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/database/connecting.rb:249:in `synchronize'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:340:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:950:in `execute'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/adapters/postgres.rb:668:in `fetch_rows'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:831:in `with_sql_each'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `block in with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:890:in `_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/actions.rb:814:in `with_sql_all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/dataset/placeholder_literalizer.rb:138:in `all'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2131:in `_load_associated_object_array'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2142:in `_load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:2240:in `load_associated_objects'
+    /Users/kematzy/.rbenv/versions/2.2.2/lib/ruby/gems/2.2.0/gems/sequel-4.29.0/lib/sequel/model/associations.rb:1767:in `block in def_association_method'
+    /Users/kematzy/Desktop/sequel-audited/lib/sequel/plugins/audited.rb:235:in `last_audited_at'
+    /Users/kematzy/Desktop/sequel-audited/spec/sequel/plugins/audited_spec.rb:452:in `block (4 levels) in <class:SequelAuditedPluginTest>'
+
+70 runs, 93 assertions, 0 failures, 10 errors, 5 skips
+
+You have skipped tests. Run with --verbose for details.
+rake aborted!
+```
