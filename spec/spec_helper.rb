@@ -28,8 +28,6 @@ require 'minitest/rg'
 Sequel.extension(:core_extensions)
 # Auto-manage created_at/updated_at fields
 Sequel::Model.plugin(:timestamps)
-# The preferred default validations plugin, which uses instance-level methods.
-# Sequel::Model.plugin(:validation_helpers)
 
 # DB = Sequel.sqlite # :memory
 DB = Sequel.connect(ENV['DATABASE_URL'])
@@ -37,81 +35,69 @@ DB = Sequel.connect(ENV['DATABASE_URL'])
 puts "Using DB=[#{ENV['DATABASE_URL']}]"
 
 
-DB.create_table?(:users) do
+DB.create_table!(:users) do
   primary_key :id
-  column :username,         :string
-  column :name,             :string
-  column :email,            :string
+  column :username,         :text
+  column :name,             :text
+  column :email,            :text
 end
 
-DB.create_table?(:audit_logs) do
+DB.create_table!(:audit_logs) do
   primary_key :id
-  column :model_type,       :string
-  column :model_pk,         :string
-  column :event,            :string
+  column :model_type,       :text
+  column :model_pk,         :integer
+  column :event,            :text
   column :changed,          :text
   column :version,          :integer, default: 0
   column :user_id,          :integer
-  column :username,         :string
-  column :user_type,        :string, default: 'User'
-  column :created_at,       :datetime
+  column :username,         :text
+  column :user_type,        :text, default: 'User'
+  column :created_at,       :timestamp
 end
 
 
-DB.create_table?(:posts) do
+DB.create_table!(:posts) do
   primary_key  :id
-  Integer :category_id, default: 1
-  # migration here...
-  String  :title, size: 255
-  String  :body,  text: true
-  Integer :author_id
-  
+  column :category_id,      :integer, default: 1
+  column :title,            :text
+  column :body,             :text
+  column :author_id,        :integer
   # timestamps
-  DateTime :created_at
-  DateTime :updated_at
+  column :created_at,       :timestamp
+  column :updated_at,       :timestamp
 end
 
-DB.create_table?(:categories) do
+DB.create_table!(:categories) do
   primary_key  :id
-  String  :name
-  Integer :position, default: 1
-  
+  column :name,             :text
+  column :position,         :integer, default: 1
   # timestamps
-  DateTime :created_at
-  DateTime :updated_at
+  column :created_at,       :timestamp
+  column :updated_at,       :timestamp
 end
 
-DB.create_table?(:comments) do
+DB.create_table!(:comments) do
   primary_key  :id
-  Integer :post_id, default: 1
-  String  :title, size: 255
-  String  :body, text: true
-  
+  column :post_id,      :integer, default: 1
+  column :title,        :text
+  column :body,         :text
   # timestamps
-  DateTime :created_at
-  DateTime :updated_at
+  column :created_at,  :timestamp
+  column :updated_at,  :timestamp
 end
 
-DB.create_table?(:authors) do
+DB.create_table!(:authors) do
   primary_key  :id
-  String :name
-  
+  column :name,        :text
   # timestamps
-  DateTime :created_at
-  DateTime :updated_at
+  column :created_at,  :timestamp
+  column :updated_at,  :timestamp
 end
 
-
-# require_relative '../lib/sequel-audit/migration'
-# require_relative '../tasks/sequel-audited/templates/audited_migration'
-# DB.instance_eval(&AuditMigration.migrate)
 
 require 'sequel/audited'
 
-
-# User class
 class User < Sequel::Model
-  
 end
 
 class Post < Sequel::Model
@@ -133,15 +119,12 @@ class Category < Sequel::Model
   many_to_many :posts
 end
 
-class Dummy < Sequel::Model
-  
-end
-
 #  create the user accounts
 @u1 = User.create(username: 'joeblogs', name: 'Joe Blogs', email: 'joe@blogs.com')
 @u2 = User.create(username: 'janeblogs', name: 'Jane Blogs', email: 'jane@blogs.com')
 @u3 = User.create(username: 'auditeduser', name: 'Audited User', email: 'auditeduser@blogs.com')
 
+# set global variables for these tests only
 $current_user = @u1
 $audited_user = @u3
 
@@ -152,23 +135,7 @@ def audited_user
   $audited_user
 end
 
-# def current_user(u = nil)
-#   # @current_user = nil
-#   if @current_user
-#     return @current_user
-#   else
-#     if u.nil?
-#       @current_user = User.first
-#     elsif u
-#       @current_user = u
-#     end
-#     return @current_user
-#   end
-#   # @current_user
-#   # @current_user ||= u.nil? ? User.first : u
-# end
-
-
+### DB SEEDS ###
 
 ca1 = Category.create(name: 'Category 1')
 ca2 = Category.create(name: 'Category 2')
