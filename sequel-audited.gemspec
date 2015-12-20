@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Kematzy']
   spec.email         = ['kematzy@gmail.com']
 
-  spec.summary       = %q{Model auditing trail (record versioning) for DB scenarios when DB triggers are not possible. (ie: on Heroku)}
-  spec.description   = %q{Model auditing trail (record versioning) for DB scenarios when DB triggers are not possible. (ie: on Heroku)}
+  spec.summary       = %q{A Sequel plugin that logs changes made to an audited model, including who created, updated and destroyed the record, and what was changed and when the change was made}
+  spec.description   = %q{A Sequel plugin that logs changes made to an audited model, including who created, updated and destroyed the record, and what was changed and when the change was made. This plugin provides model auditing (a.k.a: record versioning) for DB scenarios when DB triggers are not possible. (ie: on a web app on Heroku).}
   spec.homepage      = 'https://github.com/kematzy/sequel-audited'
   spec.license       = 'MIT'
 
