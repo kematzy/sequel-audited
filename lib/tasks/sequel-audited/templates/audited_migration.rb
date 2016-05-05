@@ -3,7 +3,7 @@ Sequel.migration do
   
   change do
     
-    create_table(:audited_logs) do
+    create_table(:audit_logs) do
       primary_key :id
       # used to track create/updates/deletes
       column :event,            :text
