@@ -22,9 +22,9 @@ Sequel.migration do
       # tracks the user id (primary key) 
       column :user_id,          :integer
       # tracks the username
-      column :username,         :string
+      column :username,         :text
       # allows for tracking of User, Client, Author, etc named models
-      column :user_type,        :string, default: :User
+      column :user_type,        :text, default: "User"
       
       # timestamp when the record was created
       column :created_at,       :timestamp
@@ -33,7 +33,7 @@ Sequel.migration do
       # add_index :audits, [:auditable_id, :auditable_type], :name => 'auditable_index'
       # add_index :audits, [:associated_id, :associated_type], :name => 'associated_index'
       # add_index :audits, [:user_id, :user_type], :name => 'user_index'
-      add_index :audits, :created_at
+      # add_index :audits, :created_at
       
     end
     
