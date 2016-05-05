@@ -4,9 +4,9 @@ namespace :audited do
   
   namespace :migrate do
     
-    desc 'Installs Sequel::Audited migration, but does not run it'
+    desc "Installs Sequel::Audited migration, but does not run it"
     task :install do
-      num = Dir["#{Dir.pwd}/db/migrate/*.rb"].sort.last[0, 3] ||= '001'
+      num = Dir["#{Dir.pwd}/db/migrate/*.rb"].sort.last[0, 3] ||= "001"
       
       FileUtils.cp(
         "#{File.dirname(__FILE__)}/templates/audited_migration.rb", 
@@ -14,9 +14,9 @@ namespace :audited do
       )
     end
     
-    desc 'Updates existing Sequel::Audited migration files with amendments'
+    desc "Updates existing Sequel::Audited migration files with amendments"
     task :update do
-      puts 'TODO: no updates required yet'
+      puts "TODO: no updates required yet"
     end
   end
   
