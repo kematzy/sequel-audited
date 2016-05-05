@@ -1,6 +1,6 @@
 # Sequel::Audited
 
-**sequel-audited** is a [Sequel](http://sequel.jeremyevans.net/) plugin that logs changes made to an 
+**sequel-audited** is a [Sequel](http://sequel.jeremyevans.net/) plugin that logs changes made to any 
 audited model, including who created, updated and destroyed the record, and what was changed 
 and when the change was made. 
 
@@ -11,11 +11,13 @@ are not possible. (ie: on a web app on Heroku).
 
 ## Disclaimer
 
-This is still **work-in-progress**, and therefore **NOT production ready**, so **use with care** 
+This is still **work-in-progress**, and is therefore **NOT production ready**, so **use with care** 
 and test thoroughly before depending upon this gem for mission-critical stuff! 
 You have been warned! No warranties and guarantees expressed or implied!
 
 <br>
+
+Having said that, the code base has 100% code coverage and I believe all significant tests pass.
 
 ----
 
@@ -80,21 +82,58 @@ bundle exec rake db:migrate
 ```
 
 
+### 3)  Add the `:uuid` plugin
+
+You need to add the `:uuid` plugin to models as follows:
+
+```ruby
+ # add a unique uuid token to each record. Used by sequel-audited
+ Sequel::Model.plugin(:uuid)
+```
+
+...and add a :uuid column to your model migrations (below) to store the unique uuid key for each model.
+
+```ruby
+  ...
+  column :uuid,             :text
+  ...
+```
+
+**SideNote**:  I'm using `:uuid` keys here for safer tracking of model records and to circumvent any primary key issues due to `integer` or `string` keys and casting of those within the DB.
+
+<br>
+
+
+### 4)  Add `:pg_json_ops` and ``pg_json`` extensions
+
+You need to add the `:pg_json` extension to support JSON formatted content before instantiation the DB connection:
+
+```ruby
+ # add PG JSON OPS extension. NOTE! before the DB.connect call
+ Sequel.extension(:pg_json_ops)
+```
+and the `:pg_json` extension after the DB connection call.
+
+```ruby
+ # add PG JSON extensions NOTE! after the DB.connect call.
+ DB.extension :pg_json
+```
+
+<br>
 
 ### IMPORTANT SIDENOTE!
 
-If you are using PostgreSQL as your database, then it's a good idea to convert the  the `changed` 
+If you are using PostgreSQL as your database, then it's a good idea to convert the  the `event_data` 
 column to JSON type for automatic translations into a Ruby hash.
 
-Otherwise, you have to use `JSON.parse(@v.changed)` to convert it to a hash if and when you want 
+Otherwise, you have to use `JSON.parse(@v.event_data)` to convert it to a hash if and when you want 
 to use it.
 
 <br>
 
-----
+------
 
 
-<a name="usage"></a>
 ## Usage
 
 
@@ -102,32 +141,34 @@ Using this plugin is fairly simple and straight-forward.  Just add it to the mod
 have audits (versions) for.
 
 ```ruby
-# auditing single model
-Post.plugin :audited
+ # auditing single model
+ Post.plugin :audited
 
-# auditing all models. NOT RECOMMENDED!
-Sequel::Model.plugin :audited
+ # auditing all models. NOT RECOMMENDED!
+ Sequel::Model.plugin :audited
 ```
 
 By default this will audit / version all columns on the model, **except** the default ignored columns configured in `Sequel::Audited.audited_default_ignored_columns` (see [Configuration Options](#configuration-options) below).
 
+<br>
 
-#### `plugin(:audited)`
+#### Basic usage => `plugin(:audited)`
 
 ```ruby
-# Given a Post model with these columns: 
-  [:id, :category_id, :title, :body, :author_id, :created_at, :updated_at]
-
-# Auditing all columns*
-
-  Post.plugin :audited 
-    
-    #=> [:id, :category_id, :title, :body, :author_id] # audited columns
-    #=> [:created_at, :updated_at]  # ignored columns
+ # Given a Post model with these columns: 
+ [:id, :category_id, :title, :body, :author_id, :created_at, :updated_at]
+ 
+ # Auditing all columns*
+ 
+ Post.plugin :audited 
+   
+   #=> [:id, :category_id, :title, :body, :author_id] # audited columns
+   #=> [:created_at, :updated_at]  # ignored columns
+   
 ```
 <br>
 
-#### `plugin(:audited, :only => [...])`
+#### Advanced Usage => `plugin(:audited, :only => [...])`
 
 ```ruby
 # Auditing a Single column
@@ -143,11 +184,11 @@ By default this will audit / version all columns on the model, **except** the de
   Post.plugin :audited, only: [:title, :body]
     #=> [:title, :body] # audited columns
     #=> [:id, :category_id, :author_id, :created_at, :updated_at] # ignored columns
-
+    
 ```
 <br>
 
-#### `plugin(:audited, :except => [...])`
+#### Advanced Usage => `plugin(:audited, :except => [...])`
 
 **NOTE!** this option does NOT ignore the default ignored columns, so use with care.
 
@@ -172,7 +213,8 @@ By default this will audit / version all columns on the model, **except** the de
 
 <br>
 
-## So what does it do??
+
+## How it works
 
 You have to look behind the curtain to see what this plugin actually does.
 
@@ -196,11 +238,11 @@ Category.create(name: 'Sequel')
 
 #<AuditLog @values={
   :id => 1, 
-  :model_type => "Category", 
-  :model_pk => 1, 
+  :item_type => "Category", 
+  :item_uuid => <UUID>, 
   :event => "create", 
-  # NOTE! all filled values are stored.
-  :changed => "{\"id\":1,\"name\":\"Sequel\",\"created_at\":\"<timestamp>\"}", 
+  # NOTE! all model values are stored by default on new records.
+  :event_data => "{\"id\":1,\"name\":\"Sequel\",\"created_at\":\"<timestamp>\"}", 
   :version => 1, 
   :user_id => 88, 
   :username => "joeblogs", 
@@ -227,11 +269,11 @@ cat.update(name: 'Ruby Sequel')
 
 #<AuditLog @values={
   :id => 2, 
-  :model_type => "Category", 
-  :model_pk => 1, 
+  :item_type => "Category", 
+  :item_uuid => <UUID>,
   :event => "update", 
   # NOTE! only the changes are stored
-  :changed => "{\"name\":[\"Sequel\",\"Ruby Sequel\"],\"updated_at\":\"<timestamp>\"}", 
+  :event_data => "{\"name\":[\"Sequel\",\"Ruby Sequel\"]}", 
   :version => 2, 
   :user_id => 88, 
   :username => "joeblogs", 
@@ -252,11 +294,11 @@ cat.delete
 
 #<AuditLog @values={
   :id => 3, 
-  :model_type => "Category", 
-  :model_pk => 1, 
+  :item_type => "Category", 
+  :item_uuid => <UUID>,
   :event => "destroy",
-  # NOTE! all values at exit time are stored
-  :changed => "{\"id\":1,\"name\":\"Ruby Sequel\",\"created_at\":\"<timestamp>\",\"updated_at\":\"<timestamp>\"}",
+  # NOTE! all model values are stored by default on deleted records
+  :event_data => "{\"id\":1,\"name\":\"Ruby Sequel\",\"created_at\":\"<timestamp>\",\"updated_at\":\"<timestamp>\"}",
   :version => 3, 
   :user_id => 88, 
   :username => "joeblogs", 
@@ -275,7 +317,6 @@ This way you can **easily track what was created, changed or deleted** and **who
 <br>
 
 
-<a name="configuration-options"></a>
 ## Configuration Options
 
 
@@ -296,19 +337,18 @@ Sequel::Audited.audited_current_user_method = :audited_user
     
 **Note!** the name of the function must be given as a symbol.
 
-<br>
-    
+<br>    
 
 #### `Sequel::Audited.audited_model_name`
 
 Enables adding your own Audit model. Default is: `:AuditLog`  
 
 ```ruby
-Sequel:: Audited.audited_model_name = :YourCustomModel
+Sequel::Audited.audited_model_name = :YourCustomModel
 ```
 **Note!** the name of the model must be given as a symbol.
-<br>
 
+<br>
 
 #### `Sequel::Audited.audited_enabled`
 
@@ -399,16 +439,16 @@ Post.audited_versions?
 # grab all audits for a particular model. Returns an array.
 Post.audited_versions
   #=> [ 
-        { id: 1, model_type: 'Post', model_pk: '11', version: 1, 
-          changed: "{JSON SERIALIZED OBJECT}", user_id: 88,
-          username: "joeblogs", created_at: TIMESTAMP
+        { id: 1, item_type: 'Post', item_uuid: '<UUID>', version: 1, 
+          event: 'create',  event_data: "{JSON SERIALIZED OBJECT}", 
+          user_id: 88, username: "joeblogs", created_at: TIMESTAMP
         },
         {...}
        ]
 
 
-# filtered by primary_key value
-Posts.audited_versions(model_pk: 123)
+# filtered by uuid key value
+Posts.audited_versions(item_uuid: <UUID>)
 
 # filtered by user :id or :username value
 Posts.audited_versions(user_id: 88)
@@ -430,16 +470,16 @@ joe.audited_versions
   #=> returns all audits made by joe  
     ['SELECT * FROM `audit_logs` WHERE user_id = 88 ORDER BY created_at DESC']
 
-joe.audited_versions(:model_type => Post)
+joe.audited_versions(:item_type => Post)
   #=> returns all audits made by joe on the Post model
-    ['SELECT * FROM `audit_logs` WHERE user_id = 88 AND model_type = 'Post' ORDER BY created_at DESC']
+    ['SELECT * FROM `audit_logs` WHERE user_id = 88 AND item_type = 'Post' ORDER BY created_at DESC']
 ```
 
 
 
-## Instance Mehtods
+## Instance Methods
 
-When you active `.plugin(:audited)` in your model, you get these methods:
+When you call `.plugin(:audited)` in your model, you get these methods:
 
 
 ### `.versions` 
@@ -453,6 +493,7 @@ end
 post.versions  #=> []
 ```
 
+<br>
 
 ### `.blame` 
 -- aliased as: `.last_audited_by`
@@ -462,6 +503,8 @@ post.versions  #=> []
 post.blame
 post.last_audited_by  #=> 'joeblogs'
 ```
+
+<br>
 
 
 ### `.last_audited_at` 
@@ -473,8 +516,11 @@ post.last_audited_at
 post.last_audited_on  #=> <timestamp>
 ```
 
+<br>
 
-### To be implemented
+### Features and functionality to be implemented
+
+Please help out if you would want this sooner than me ;-)
 
 ```ruby
 # Returns the post (not a version) as it looked at around the the given timestamp.
@@ -521,7 +567,7 @@ Not everything is perfect or fully formed, so this gem may be in need of the fol
   Please feel free to provide some suggestions or pull-requests.
 
 
-* Solid **testing and support for more DB's, other than PostgreSQL and SQLite3** currently tested
+* Solid **testing and support for more DB's, other than PostgreSQL** currently tested
    against.  Not a priority as I currently have no such requirements. Please feel free to 
    submit a pull-request.
    
@@ -571,9 +617,12 @@ expected to adhere to the [Contributor Covenant](http://contributor-covenant.org
 
 ## License
 
-&copy; Copyright Kematzy, 2015
+&copy; Copyright Kematzy, 2015 - 2016
 
 Heavily inspired by:
+
+* the [sequel](https://github.com/jeremyevans/sequel) gem by Jeremy Evans and many others released 
+   under the MIT license.
 
 * the [audited](https://github.com/collectiveidea/audited) gem by Brandon Keepers, Kenneth Kalmer, 
   Daniel Morrison, Brian Ryckbost, Steve Richert & Ryan Glover released under the MIT licence.
@@ -581,8 +630,6 @@ Heavily inspired by:
 * the [paper_trail](https://github.com/airblade/paper_trail) gem by Andy Stewart & Ben Atkins 
   released under the MIT license.
     
-* the [sequel](https://github.com/jeremyevans/sequel) gem by Jeremy Evans and many others released 
-   under the MIT license.
 
 The gem is available as open source under the terms of the 
 [MIT License](http://opensource.org/licenses/MIT).
