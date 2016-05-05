@@ -7,12 +7,16 @@ class CurrentUserMethodTest < Minitest::Spec
     
     it 'should by default return the default user - Joe Blogs' do
       current_user().must_equal User.first
+      current_user().id.must_equal 1
+      current_user().name.must_equal 'Joe Blogs'
+      current_user().username.must_equal 'joeblogs'
     end
     
     it 'should allow overriding the user and return the new current_user - Jane Blogs' do
       $current_user =           User[2]
       current_user().wont_equal User[1]
       current_user().must_equal User[2]
+      current_user().name.must_equal 'Jane Blogs'
       current_user().username.must_equal 'janeblogs'
       $current_user = User[1]  # reset for next test
     end
@@ -25,8 +29,9 @@ class AuditedUserMethodTest < Minitest::Spec
   
   describe 'audited_user' do
     
-    it 'should by default return the default user - Joe Blogs' do
+    it 'should by default return the default user - Audited User' do
       audited_user().must_equal User[3]
+      audited_user().name.must_equal 'Audited User'
       audited_user().username.must_equal 'auditeduser'
     end
     
@@ -34,6 +39,7 @@ class AuditedUserMethodTest < Minitest::Spec
       $audited_user = User[2]
       audited_user().wont_equal User.first
       audited_user().must_equal User[2]
+      audited_user().name.must_equal 'Jane Blogs'
       audited_user().username.must_equal 'janeblogs'
       $audited_user = User[3]  # reset for next test
     end
@@ -43,11 +49,12 @@ class AuditedUserMethodTest < Minitest::Spec
 end
 
 class SequelAuditedPluginTest < Minitest::Spec
-  
+
   describe 'configuration' do
-    
+
     describe 'without options passed' do
-      before do 
+      
+      before do
         @p = Class.new(Post)
         @p.plugin(:audited)
       end
@@ -55,7 +62,7 @@ class SequelAuditedPluginTest < Minitest::Spec
       describe '#audited_columns' do
         
         it 'should include all fields, excluding default ignored attributes' do
-          @p.audited_columns.must_equal [:id, :category_id, :title, :body, :author_id]
+          @p.audited_columns.must_equal [:id, :category_id, :title, :body, :author_id, :uuid]
         end
         
       end
@@ -85,7 +92,7 @@ class SequelAuditedPluginTest < Minitest::Spec
           @p.audited_current_user_method.must_equal :current_user
         end
         
-        it 'should use the :current_user User' do
+        it 'should use the :current_user User for versions' do
           Category.plugin(:audited)
           c = Category.create(name: 'Category 5')
           # c.must_equal ''
@@ -94,15 +101,39 @@ class SequelAuditedPluginTest < Minitest::Spec
           # v.must_equal ''
           v.username.must_equal User[1].username
         end
+        
       end
       
     end # /without options
     
     describe 'with options' do
       
+      describe 'Post.plugin(:audited, :user_method => :audited_user)' do
+        before do
+          @p = Class.new(Post)
+          @p.plugin(:audited, user_method: :audited_user)
+        end
+        
+        it '#audited_current_user_method should return the custom value' do
+          @p.audited_current_user_method.must_equal :audited_user
+        end
+        
+        it 'should use the :audited_user User for versions' do
+          Category.plugin(:audited, user_method: :audited_user)
+          c = Category.create(name: 'Category 5')
+          # c.must_equal ''
+          assert c.valid?
+          v = c.versions.first
+          # v.must_equal ''
+          v.username.must_equal 'auditeduser'
+        end
+        
+      end
+      
       describe 'Post.plugin(:audited, :only => ...)' do
         
         describe ':only => :title' do
+          
           before do
             @p = Class.new(Post)
             @p.plugin(:audited, only: :title)
@@ -116,9 +147,30 @@ class SequelAuditedPluginTest < Minitest::Spec
             @p.non_audited_columns.must_equal(@p.columns - [:title])
           end
           
+          it 'should only store the :title for update versions' do
+            Post.plugin(:audited, only: :title)
+            p = Post.create(title: 'Post Title', body: 'Post Body', category_id: 1)
+            p.versions.wont_equal []
+            p.update(title: 'Post Title Updated')
+            p.versions.count.must_equal 2
+            v = p.versions.last
+            v.event_data.must_equal({"title"=>"Post Title Updated"})
+          end
+          
+          it 'should not store version for non :title updates' do
+            Post.plugin(:audited, only: :title)
+            p = Post.create(title: 'Post Title', body: 'Post Body', category_id: 1)
+            p.versions.count.must_equal 1
+            p.update(body: 'Post Body Updated')
+            p.versions.count.must_equal 1
+            v = p.versions.last
+            v.event.must_equal 'create'
+          end
+          
         end
         
         describe 'only: [:title]' do
+          
           before do
             @p = Class.new(Post)
             @p.plugin(:audited, only: [:title])
@@ -134,7 +186,8 @@ class SequelAuditedPluginTest < Minitest::Spec
           
         end
         
-        describe 'only: [:title,:author_id]' do
+        describe 'only: [:title, :author_id]' do
+          
           before do
             @p = Class.new(Post)
             @p.plugin(:audited, only: [:title, :author_id])
@@ -148,6 +201,16 @@ class SequelAuditedPluginTest < Minitest::Spec
             @p.non_audited_columns.must_equal(@p.columns - [:title, :author_id])
           end
           
+          it '#.versions should only store the :title for update versions' do
+            Post.plugin(:audited, only: [:title, :author_id])
+            p = Post.create(title: 'Post Title', body: 'Post Body', category_id: 1, author_id: 2)
+            p.versions.count.must_equal 1
+            p.update(title: 'Post Title Updated', author_id: 3 )
+            p.versions.count.must_equal 2
+            v = p.versions.last
+            v.event_data.must_equal({"title"=>"Post Title Updated", "author_id" => 3 })
+          end
+          
         end
         
       end
@@ -155,29 +218,52 @@ class SequelAuditedPluginTest < Minitest::Spec
       describe 'Post.plugin(:audited, :except => ...)' do
         
         describe ':except => :title' do
+          
           before do
             @p = Class.new(Post)
             @p.plugin(:audited, except: :title)
           end
           
           it '#.audited_columns should include all columns except the named column' do
-            @p.audited_columns.must_equal([:id, :category_id, :body, :author_id])
+            @p.audited_columns.must_equal([:id, :category_id, :body, :author_id, :uuid])
           end
           
           it '#.non_audited_columns should include the named column' do
             @p.non_audited_columns.must_equal([:title, :created_at, :updated_at])
           end
           
+          # it 'should store all attributes except :title for update versions' do
+          #   Post.plugin(:audited, except: :title)
+          #   p = Post.create(title: 'Post Title', body: 'Post Body', category_id: 1)
+          #   p.versions.wont_equal []
+          #   p.update(body: 'Post Body Updated')
+          #   p.versions.count.must_equal 2
+          #   v = p.versions.last
+          #   v.event_data.must_equal({"body"=>"Post Body Updated"})
+          # end
+          #
+          # it 'should not store version for :title updates' do
+          #   Post.plugin(:audited, except: :title)
+          #   p = Post.create(title: 'Post Title', body: 'Post Body', category_id: 1)
+          #   p.versions.count.must_equal 1
+          #   p.update(title: 'Post Title Updated')
+          #   p.versions.count.must_equal 1
+          #   v = p.versions.last
+          #   # v.must_equal 'debug'
+          #   v.event.must_equal 'create'
+          # end
+          
         end
         
         describe 'except: [:title]' do
+          
           before do
             @p = Class.new(Post)
             @p.plugin(:audited, except: [:title])
           end
           
           it '#.audited_columns should include all columns except the named column' do
-            @p.audited_columns.must_equal([:id, :category_id, :body, :author_id])
+            @p.audited_columns.must_equal([:id, :category_id, :body, :author_id, :uuid])
           end
           
           it '#.non_audited_columns should include the named column' do
@@ -187,31 +273,20 @@ class SequelAuditedPluginTest < Minitest::Spec
         end
         
         describe 'except: [:title,:author_id]' do
+          
           before do
             @p = Class.new(Post)
             @p.plugin(:audited, except: [:title, :author_id])
           end
           
           it '#.audited_columns should include only the excepted columns' do
-            @p.audited_columns.must_equal([:id, :category_id, :body])
+            @p.audited_columns.must_equal([:id, :category_id, :body, :uuid])
           end
           
           it '#.non_audited_columns should include the excluded columns' do
             @p.non_audited_columns.must_equal([:title, :author_id, :created_at, :updated_at])
           end
           
-        end
-        
-      end
-      
-      describe 'Post.plugin(:audited, :user_method => :audited_user)' do
-        before do
-          @p = Class.new(Post)
-          @p.plugin(:audited, user_method: :audited_user)
-        end
-        
-        it '#audited_current_user_method should return the custom value' do
-          @p.audited_current_user_method.must_equal :audited_user
         end
         
       end
@@ -227,7 +302,7 @@ class SequelAuditedPluginTest < Minitest::Spec
         end
         
         it '#audited_columns should return the correct columns' do
-          @p.audited_columns.must_equal [:id, :category_id, :body, :created_at, :updated_at]
+          @p.audited_columns.must_equal [:id, :category_id, :body, :created_at, :updated_at, :uuid]
         end
         
         it '#audited_ignored_columns should return the correct ignored columns' do
@@ -239,18 +314,19 @@ class SequelAuditedPluginTest < Minitest::Spec
     end
     
   end
-  
+
   describe 'An audited Model :Author' do
+    
     before do
       Author.plugin(:audited, only: :name)
       Category.plugin(:audited, only: :name)
     end
-    
+
     describe 'Class Methods' do
       
       describe '#.audited_versions?' do
         before do
-          ::AuditLog.where(model_type: 'Author').delete
+          ::AuditLog.where(item_type: 'Author').delete
         end
         
         it 'should return false when no versions have been created' do
@@ -301,7 +377,7 @@ class SequelAuditedPluginTest < Minitest::Spec
         
         describe 'without options' do
           before do
-            ::AuditLog.where(model_type: 'Author').delete
+            ::AuditLog.where(item_type: 'Author').delete
           end
           
           it 'should return an empty array when no versions exists' do
@@ -310,20 +386,21 @@ class SequelAuditedPluginTest < Minitest::Spec
           
           it 'should return an array of versions if one version have been created' do
             a = Author.create(name: 'Kematzy')
-            Author.audited_versions.wont_be_empty 
+            Author.audited_versions.wont_be_empty
             al = Author.audited_versions.first
             # al.must_equal ''
             al.must_be_kind_of(::AuditLog)
-            al.model_type.must_equal 'Author'
-            al.model_pk.must_equal a.id
+            al.item_type.must_equal 'Author'
+            al.item_uuid.must_equal a.uuid
           end
           
         end
         
         describe 'with options' do
+          
           before do
-            ::AuditLog.where(model_type: 'Author').destroy
-            ::AuditLog.where(model_type: 'Category').destroy
+            ::AuditLog.where(item_type: 'Author').destroy
+            ::AuditLog.where(item_type: 'Category').destroy
             
             %w(a b c d).each do |n|
               Author.create(name: "Joe #{n}")
@@ -357,16 +434,16 @@ class SequelAuditedPluginTest < Minitest::Spec
             
           end
           
-          describe '(model_pk: ??)' do
+          describe '(item_uuid: ??)' do
             
-            it 'should return an empty array when given a model primary key without audits' do
-              Author.audited_versions(model_pk: 999).must_equal []
-              Author.audited_versions(model_pk: 999).count.must_equal 0
+            it 'should return an empty array when given a model uuid key without audits' do
+              Author.audited_versions(item_uuid: 'abc-123').must_equal []
+              Author.audited_versions(item_uuid: 'abc-123').count.must_equal 0
             end
             
-            it 'should return found audits when given an audited primary key' do
-              Author.audited_versions(model_pk: @pkA.id).count.must_equal 1
-              Category.audited_versions(model_pk: @pkC.id).count.must_equal 1
+            it 'should return found audits when given an audited uuid key' do
+              Author.audited_versions(item_uuid: @pkA.uuid).count.must_equal 1
+              Category.audited_versions(item_uuid: @pkC.uuid).count.must_equal 1
             end
             
           end
@@ -380,6 +457,7 @@ class SequelAuditedPluginTest < Minitest::Spec
             
             it 'should return an array when given a time with audits' do
               skip('TODO: have to add TimeCop here to test the time issues')
+              
               Author.audited_versions(created_at: Time.now).must_equal []
               Author.audited_versions(created_at: Time.now).count.must_equal 1
             end
@@ -389,36 +467,6 @@ class SequelAuditedPluginTest < Minitest::Spec
         end
         
       end
-      
-      describe '#.audited_default_ignored_columns' do
-        it 'should have some tests' do
-          skip('need tests')
-        end
-      end
-      
-      describe '#.audited_current_user_method' do
-        it 'should have some tests' do
-          skip('need tests')
-        end
-      end
-      
-      describe '#.audited_ignored_columns' do
-        it 'should have some tests' do
-          skip('need tests')
-        end
-      end
-      
-      describe '#.audited_included_columns' do
-        it 'should have some tests' do
-          skip('need tests')
-        end
-      end
-      
-      # attr_accessor :audited_default_ignored_columns, :audited_current_user_method
-      # # The holder of ignored columns
-      # attr_accessor :audited_ignored_columns
-      # # The holder of columns that should be audited
-      # attr_accessor :audited_included_columns
       
     end
     
@@ -437,6 +485,7 @@ class SequelAuditedPluginTest < Minitest::Spec
           a.blame.must_equal 'joeblogs' # default
           a.last_audited_by.must_equal 'joeblogs'
         end
+        
       end
       
       describe '#.last_audited_at (aliased as: #.last_audited_on)' do
@@ -452,6 +501,7 @@ class SequelAuditedPluginTest < Minitest::Spec
           a.last_audited_at.must_be_kind_of(Time)
           a.last_audited_at.to_s.must_match(/#{Time.now.strftime('%Y-%m-%d')}/)
         end
+        
       end
       
       describe 'Hooks' do
@@ -471,9 +521,9 @@ class SequelAuditedPluginTest < Minitest::Spec
             v = c.versions.first
             v.version.must_equal 1
             v.event.must_equal 'create'
-            v.model_type.must_equal c.class.to_s
-            v.model_pk.must_equal c.id
-            v.changed.wont_equal ''
+            v.item_type.must_equal c.class.to_s
+            v.item_uuid.must_equal c.uuid
+            v.event_data.wont_equal ''
             # v.changed.must_equal c.values.to_json
           end
           
@@ -492,12 +542,13 @@ class SequelAuditedPluginTest < Minitest::Spec
             v = c.versions.last
             v.version.must_equal 2
             v.event.must_equal 'update'
-            v.model_type.must_equal c.class.to_s
-            v.model_pk.must_equal c.id
-            v.changed.must_match(/\"name\":\[\"Category 5\",\"Category 5 updated\"\]/)
+            v.item_type.must_equal c.class.to_s
+            v.item_uuid.must_equal c.uuid
+            v.event_data.to_json.must_match(/\"name\":\"Category 5 updated\"/)
           end
           
         end
+        
         
         describe 'when destroying a record, triggering #.after_destroy' do
           
@@ -513,12 +564,12 @@ class SequelAuditedPluginTest < Minitest::Spec
             c.versions.count.must_equal 3
             
             v = c.versions.last
+            # v.must_equal 'debug'
             v.version.must_equal 3
             v.event.must_equal 'destroy'
-            v.model_type.must_equal c.class.to_s
-            v.model_pk.must_equal c.id
-            v.changed.must_equal c.values.to_json
-            # JSON.parse(v.changed).must_equal c.values.to_json
+            v.item_type.must_equal c.class.to_s
+            v.item_uuid.must_equal c.uuid
+            v.event_data.to_json.must_equal c.values.to_json
           end
           
         end
@@ -528,45 +579,35 @@ class SequelAuditedPluginTest < Minitest::Spec
     end
     
     describe 'should have associated versions' do
-      
+
       it { assert_association_one_to_many(Author.new, :versions) }
-      
+
       before do
         @u = User.create(username: 'johnblogs', name: 'John Blogs', email: 'john@blogs.com')
       end
       
-      it 'should ' do
+      it 'should store the current user :username for each version' do
         $current_user = @u
         a = Author.create(name: 'Kematzy')
         v = a.versions.first
         v.username.must_equal 'johnblogs'
-        $current_user = User[1]
+        $current_user = User[1]  # reset
       end
       
-      it 'should ' do
-        # current_user.must_equal ''
+      it 'should store the current user :id for each version' do
         $current_user = User[2]  # jane
-        
         a = Author.create(name: 'Kematzy')
         v = a.versions.first
-        v.username.must_equal 'janeblogs'
-        $current_user = User[1]
+        v.user_id.must_equal 2
+        $current_user = User[1]  # reset
       end
       
-      it 'should return 0 when no version have been saved' do
-        
-        # m.versions.count.must_equal 1
-        # Author.associations.must_equal 'dadfas'
-        # Author.association_reflection(:versions).must_equal 'dafdass'
-        # m.associations.each do |a|
-        #   m.associations_reflection(a).must_equal 'd'
-        # end
-        
-        
-        # assert_association_one_to_many(m, :version)
+      it 'should not store versions for unsaved models' do
+        m = Author.new
+        m.versions.count.must_equal 0
+        m.versions.must_equal []
       end
-      
-      
+        
     end
     
   end
@@ -585,9 +626,10 @@ class SequelAuditedPluginTest < Minitest::Spec
       v.username.must_equal 'auditeduser'
       # ::AuditLog.audited_current_user_method = :current_user
     end
-  
+    
   end
   
-  
-  
+
 end
+
+

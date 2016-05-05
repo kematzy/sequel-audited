@@ -1,12 +1,9 @@
-# 
+# the versioning model
 class AuditLog < Sequel::Model
-  # handle versioning of audited records
-  plugin :list, field: :version, scope: [:model_type, :model_pk]
+  # handle versioning of audited records based upon object uuid
+  plugin :list, field: :version, scope: [:item_uuid]
   plugin :timestamps
   
-  # TODO: see if we should add these
-  # many_to_one :associated, polymorphic: true
-  # many_to_one :user,       polymorphic: true
   
   def before_validation
     # grab the current user
@@ -21,14 +18,13 @@ class AuditLog < Sequel::Model
   # Obtains the `current_user` based upon the `:audited_current_user_method' value set in the
   # audited model, either via defaults or via :user_method config options
   # 
-  # # NOTE! this allows overriding the default value on a per audited model
+  # NOTE! this allows overriding the default value on a per audited model
   def audit_user
-    m = Kernel.const_get(model_type)
+    m = Kernel.const_get(item_type)
     send(m.audited_current_user_method)
   end
   
 end
-
 
 
 module Sequel
@@ -67,12 +63,14 @@ module Sequel
     # 
     module Audited
       
-      # called when 
+      # called by the model it is included into:
+      #    
+      #    Post.plugin :audited
+      #
       def self.configure(model, opts = {})
         model.instance_eval do
-          # add support for :dirty attributes tracking & JSON serializing of data
+          # add support for :dirty attributes tracking
           plugin(:dirty)
-          plugin(:json_serializer)
           
           # set the default ignored columns or revert to defaults
           set_default_ignored_columns(opts)
@@ -102,18 +100,13 @@ module Sequel
           @audited_included_columns = included_columns
           @audited_ignored_columns  = excluded_columns
           
-          # each included model will have an associated versions
-          one_to_many(
-            :versions, 
-            class: audit_model_name, 
-            key: :model_pk, 
-            conditions: { model_type: model.name.to_s }
-          )
           
-        end
+          # create versions association
+          one_to_many :versions, class: audit_model_name, key: :item_uuid, primary_key: :uuid
+          
+        end # /.instance_eval
         
-        
-      end
+      end # /.configure
       
       # 
       module ClassMethods
@@ -132,29 +125,22 @@ module Sequel
                                              :@audited_ignored_columns         => nil
                                             )
         
+        #
         def non_audited_columns
           columns - audited_columns
         end
         
+        # 
         def audited_columns
           @audited_columns ||= columns - @audited_ignored_columns
         end
         
-        # def default_ignored_attrs
-        #   # TODO: how to reference the models primary_key value??
-        #   arr = [pk.to_s]
-        #   # handle STI (Class Table Inheritance) models with `plugin :single_table_inheritance`
-        #   arr << 'sti_key' if self.respond_to?(:sti_key)
-        #   arr
-        # end
-        
-        # 
         # returns true / false if any audits have been made
         # 
         #   Post.audited_versions?   #=> true / false
         # 
         def audited_versions?
-          audit_model.where(model_type: name.to_s).count >= 1
+          audit_model.where(item_type: name.to_s).count >= 1
         end
         
         # grab all audits for a particular model based upon filters
@@ -172,21 +158,24 @@ module Sequel
         #     #=> filtered to older than last seven (7) days
         #     
         def audited_versions(opts = {})
-          audit_model.where(opts.merge(model_type: name.to_s)).order(:version).all
+          audit_model.where(opts.merge(item_type: name.to_s)).order(:item_uuid, :version).all
         end
         
         
         private 
         
         
+        # 
         def audit_model
           const_get(audit_model_name)
         end
         
+        # 
         def audit_model_name
           ::Sequel::Audited.audited_model_name
         end
         
+        # 
         def set_default_ignored_columns(opts)
           if opts[:default_ignored_columns]
             @audited_default_ignored_columns = opts[:default_ignored_columns]
@@ -195,6 +184,7 @@ module Sequel
           end
         end
         
+        # 
         def set_user_method(opts)
           if opts[:user_method]
             @audited_current_user_method = opts[:user_method]
@@ -209,6 +199,10 @@ module Sequel
       # 
       module InstanceMethods
         
+        # def model_pk
+        #   changed['model_pk']
+        # end
+        
         # Returns who put the post into its current state.
         #   
         #   post.blame  # => 'joeblogs'
@@ -219,7 +213,7 @@ module Sequel
         # 
         def blame
           v = versions.last unless versions.empty?
-          v ? v.username : 'not audited'
+          v ? v.username : "not audited"
         end
         alias_method :last_audited_by, :blame
         
@@ -233,53 +227,60 @@ module Sequel
         # 
         def last_audited_at
           v = versions.last unless versions.empty?
-          v ? v.created_at : 'not audited'
+          v ? v.created_at : "not audited"
         end
         alias_method :last_audited_on, :last_audited_at
         
         
         private
         
-        # extract audited values only
-        def extract_audited_values
-        end
         
         ### CALLBACKS ###
         
+        
         def after_create
           super
-          # changed = column_changes.empty? ? previous_changes : column_changes
-          changed =  self.values
-          # :user, :version & :created_at set in model
+          # puts "-- after_create => [#{self.inspect}] self.class.audited_columns=[#{self.class.audited_columns.inspect}]"
+          # store all values on create
+          changes = self.values
+          
           add_version(
-            model_type: model,
-            model_pk:   pk,
-            event:      'create',
-            changed:    changed.to_json
+            item_type:  model,
+            item_uuid:  uuid,
+            event:      "create",
+            event_data: changes.to_json
           )
         end
         
         def after_update
           super
-          changed = column_changes.empty? ? previous_changes : column_changes
-          # :user, :version & :created_at set in model
+          # extract changed columns
+          changed = @columns_updated.empty? ? previous_changes : @columns_updated
+          # store only audited columns (skip ignored columns)
+          changes = {}
+          changed.keys.each do |cv|
+            changes[cv.to_sym] = changed[cv.to_sym] if self.class.audited_columns.include?(cv.to_sym)
+          end
+          
           add_version(
-            model_type:  model,
-            model_pk:    pk,
-            event:       'update',
-            changed:     changed.to_json
-          )
+            item_type:   model,
+            item_uuid:   uuid,
+            event:       "update",
+            event_data:  changes.to_json
+          ) unless changes.empty?  # do not store empty changes
         end
-        
+
         def after_destroy
           super
-          # :user, :version & :created_at set in model
+          # store all values on destroy
+          changes = self.values
           add_version(
-            model_type:  model,
-            model_pk:    pk,
-            event:       'destroy',
-            changed:     self.to_json
+            item_type:    model,
+            item_uuid:    uuid,
+            event:        "destroy",
+            event_data:   changes.to_json
           )
+          
         end
         
       end

@@ -1,6 +1,6 @@
 require_relative '../spec_helper'
 
-class Sequel::AuditedTest < Minitest::Test
+class Sequel::AuditedTest < Minitest::Spec
   
   describe ::Sequel::Audited do
     

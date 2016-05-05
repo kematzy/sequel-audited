@@ -10,8 +10,9 @@ end
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'rubygems'
-require 'sqlite3'
+# require 'sqlite3'
 require 'pg'
+require 'json'
 
 require 'minitest/sequel'
 require 'minitest/autorun'
@@ -28,9 +29,20 @@ require 'minitest/rg'
 Sequel.extension(:core_extensions)
 # Auto-manage created_at/updated_at fields
 Sequel::Model.plugin(:timestamps)
+# add a unique uuid token to each record. Used by sequel-audited
+Sequel::Model.plugin(:uuid)
+# 
+Sequel.extension(:pg_json_ops)
 
 # DB = Sequel.sqlite # :memory
 DB = Sequel.connect(ENV['DATABASE_URL'])
+
+# add PG extensions
+# DB.extension :pg_array, :pg_json
+DB.extension :pg_json
+
+# require "logger"
+# DB.loggers << Logger.new($stdout)
 
 puts "Using DB=[#{ENV['DATABASE_URL']}]"
 
@@ -40,18 +52,23 @@ DB.create_table!(:users) do
   column :username,         :text
   column :name,             :text
   column :email,            :text
+  column :uuid,             :text
 end
 
 DB.create_table!(:audit_logs) do
   primary_key :id
-  column :model_type,       :text
-  column :model_pk,         :integer
   column :event,            :text
-  column :changed,          :text
+
+  column :item_type,        :text
+  column :item_uuid,        :text
   column :version,          :integer, default: 0
+  
+  column :event_data,       :json
+  
   column :user_id,          :integer
   column :username,         :text
   column :user_type,        :text, default: 'User'
+  
   column :created_at,       :timestamp
 end
 
@@ -65,6 +82,19 @@ DB.create_table!(:posts) do
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
+  column :uuid,             :text
+end
+
+DB.create_table!(:blog_posts) do
+  primary_key  :id
+  column :category_id,      :integer, default: 1
+  column :title,            :text
+  column :body,             :text
+  column :author_id,        :integer
+  # timestamps
+  column :created_at,       :timestamp
+  column :updated_at,       :timestamp
+  column :uuid,             :text
 end
 
 DB.create_table!(:categories) do
@@ -74,24 +104,27 @@ DB.create_table!(:categories) do
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
+  column :uuid,             :text
 end
 
 DB.create_table!(:comments) do
   primary_key  :id
-  column :post_id,      :integer, default: 1
-  column :title,        :text
-  column :body,         :text
+  column :post_id,          :integer, default: 1
+  column :title,            :text
+  column :body,             :text
   # timestamps
-  column :created_at,  :timestamp
-  column :updated_at,  :timestamp
+  column :created_at,       :timestamp
+  column :updated_at,       :timestamp
+  column :uuid,             :text
 end
 
 DB.create_table!(:authors) do
   primary_key  :id
-  column :name,        :text
+  column :name,              :text
   # timestamps
-  column :created_at,  :timestamp
-  column :updated_at,  :timestamp
+  column :created_at,       :timestamp
+  column :updated_at,       :timestamp
+  column :uuid,             :text
 end
 
 
@@ -105,6 +138,12 @@ class Post < Sequel::Model
   one_to_many  :comments
   many_to_many :categories
   # one_to_one   :main_author, :class=>:Author, :order=>:id
+end
+
+class BlogPost < Sequel::Model
+  many_to_one  :author
+  one_to_many  :comments
+  many_to_many :categories
 end
 
 class Comment < Sequel::Model
