@@ -1,41 +1,41 @@
-require 'dotenv'
-Dotenv.load(File.expand_path('../../.env.test', __FILE__))
+require "dotenv"
+Dotenv.load(File.expand_path("../../.env.test", __FILE__))
 
-ENV['RACK_ENV'] = 'test'
-if ENV['COVERAGE']
-  require File.join(File.dirname(File.expand_path(__FILE__)), 'sequel_audited_coverage')
+ENV["RACK_ENV"] = "test"
+if ENV["COVERAGE"]
+  require File.join(File.dirname(File.expand_path(__FILE__)), "sequel_audited_coverage")
   SimpleCov.sequel_audited_coverage
 end
 
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 
-require 'rubygems'
+require "rubygems"
 # require 'sqlite3'
-require 'pg'
-require 'json'
+require "pg"
+require "json"
 
-require 'minitest/sequel'
-require 'minitest/autorun'
-require 'minitest/hooks/default'
+require "minitest/sequel"
+require "minitest/autorun"
+require "minitest/hooks/default"
 class Minitest::HooksSpec
   def around
     Sequel::Model.db.transaction(rollback: :always, auto_savepoint: true) { super }
   end
 end
 
-require 'minitest/assert_errors'
-require 'minitest/rg'
+require "minitest/assert_errors"
+require "minitest/rg"
 
 Sequel.extension(:core_extensions)
 # Auto-manage created_at/updated_at fields
 Sequel::Model.plugin(:timestamps)
 # add a unique uuid token to each record. Used by sequel-audited
 Sequel::Model.plugin(:uuid)
-# 
+#
 Sequel.extension(:pg_json_ops)
 
 # DB = Sequel.sqlite # :memory
-DB = Sequel.connect(ENV['DATABASE_URL'])
+DB = Sequel.connect(ENV["DATABASE_URL"])
 
 # add PG extensions
 # DB.extension :pg_array, :pg_json
@@ -62,13 +62,13 @@ DB.create_table!(:audit_logs) do
   column :item_type,        :text
   column :item_uuid,        :text
   column :version,          :integer, default: 0
-  
+
   column :event_data,       :json
-  
+
   column :user_id,          :integer
   column :username,         :text
-  column :user_type,        :text, default: 'User'
-  
+  column :user_type,        :text, default: "User"
+
   column :created_at,       :timestamp
 end
 
@@ -86,7 +86,7 @@ DB.create_table!(:posts) do
 end
 
 DB.create_table!(:blog_posts) do
-  primary_key  :id
+  primary_key :id
   column :category_id,      :integer, default: 1
   column :title,            :text
   column :body,             :text
@@ -98,7 +98,7 @@ DB.create_table!(:blog_posts) do
 end
 
 DB.create_table!(:categories) do
-  primary_key  :id
+  primary_key :id
   column :name,             :text
   column :position,         :integer, default: 1
   # timestamps
@@ -108,7 +108,7 @@ DB.create_table!(:categories) do
 end
 
 DB.create_table!(:comments) do
-  primary_key  :id
+  primary_key :id
   column :post_id,          :integer, default: 1
   column :title,            :text
   column :body,             :text
@@ -119,8 +119,8 @@ DB.create_table!(:comments) do
 end
 
 DB.create_table!(:authors) do
-  primary_key  :id
-  column :name,              :text
+  primary_key               :id
+  column :name,             :text
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
@@ -128,7 +128,7 @@ DB.create_table!(:authors) do
 end
 
 
-require 'sequel/audited'
+require "sequel/audited"
 
 class User < Sequel::Model
 end
@@ -159,9 +159,9 @@ class Category < Sequel::Model
 end
 
 #  create the user accounts
-@u1 = User.create(username: 'joeblogs', name: 'Joe Blogs', email: 'joe@blogs.com')
-@u2 = User.create(username: 'janeblogs', name: 'Jane Blogs', email: 'jane@blogs.com')
-@u3 = User.create(username: 'auditeduser', name: 'Audited User', email: 'auditeduser@blogs.com')
+@u1 = User.create(username: "joeblogs", name: "Joe Blogs", email: "joe@blogs.com")
+@u2 = User.create(username: "janeblogs", name: "Jane Blogs", email: "jane@blogs.com")
+@u3 = User.create(username: "auditeduser", name: "Audited User", email: "auditeduser@blogs.com")
 
 # set global variables for these tests only
 $current_user = @u1
@@ -176,23 +176,22 @@ end
 
 ### DB SEEDS ###
 
-ca1 = Category.create(name: 'Category 1')
-ca2 = Category.create(name: 'Category 2')
-ca3 = Category.create(name: 'Category 3')
-ca4 = Category.create(name: 'Category 4')
+ca1 = Category.create(name: "Category 1")
+ca2 = Category.create(name: "Category 2")
+ca3 = Category.create(name: "Category 3")
+ca4 = Category.create(name: "Category 4")
 
-a1 = Author.create(name: 'Author 1')
-a2 = Author.create(name: 'Author 2')
+a1 = Author.create(name: "Author 1")
+a2 = Author.create(name: "Author 2")
 
-p1 = Post.create(title: 'Post 1', author_id: a1.id, category_id: ca1.id)
-p2 = Post.create(title: 'Post 2', author_id: a1.id, category_id: ca2.id)
-p3 = Post.create(title: 'Post 3', author_id: a2.id, category_id: ca3.id)
-p4 = Post.create(title: 'Post 4', author_id: a2.id, category_id: ca4.id)
+p1 = Post.create(title: "Post 1", author_id: a1.id, category_id: ca1.id)
+p2 = Post.create(title: "Post 2", author_id: a1.id, category_id: ca2.id)
+p3 = Post.create(title: "Post 3", author_id: a2.id, category_id: ca3.id)
+p4 = Post.create(title: "Post 4", author_id: a2.id, category_id: ca4.id)
 
-co1 = Comment.create(title: 'Comment 1', body: 'Comment 1 body', post_id: p1.id)
-co2 = Comment.create(title: 'Comment 2', body: 'Comment 2 body', post_id: p1.id)
-co3 = Comment.create(title: 'Comment 3', body: 'Comment 3 body', post_id: p1.id)
-co4 = Comment.create(title: 'Comment 4', body: 'Comment 4 body', post_id: p2.id)
-co5 = Comment.create(title: 'Comment 5', body: 'Comment 5 body', post_id: p2.id)
-co6 = Comment.create(title: 'Comment 6', body: 'Comment 6 body', post_id: p2.id)
-
+co1 = Comment.create(title: "Comment 1", body: "Comment 1 body", post_id: p1.id)
+co2 = Comment.create(title: "Comment 2", body: "Comment 2 body", post_id: p1.id)
+co3 = Comment.create(title: "Comment 3", body: "Comment 3 body", post_id: p1.id)
+co4 = Comment.create(title: "Comment 4", body: "Comment 4 body", post_id: p2.id)
+co5 = Comment.create(title: "Comment 5", body: "Comment 5 body", post_id: p2.id)
+co6 = Comment.create(title: "Comment 6", body: "Comment 6 body", post_id: p2.id)
