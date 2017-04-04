@@ -117,6 +117,9 @@ DB.create_table!(:comments) do
   column :post_id,          :integer, default: 1
   column :title,            :text
   column :body,             :text
+  column :name,             :text
+  column :email,            :text
+
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
@@ -211,9 +214,9 @@ p2 = Post.create(title: "Post 2", author_id: a1.id, category_id: ca2.id)
 p3 = Post.create(title: "Post 3", author_id: a2.id, category_id: ca3.id)
 p4 = Post.create(title: "Post 4", author_id: a2.id, category_id: ca4.id)
 
-co1 = Comment.create(title: "Comment 1", body: "Comment 1 body", post_id: p1.id)
-co2 = Comment.create(title: "Comment 2", body: "Comment 2 body", post_id: p1.id)
-co3 = Comment.create(title: "Comment 3", body: "Comment 3 body", post_id: p1.id)
-co4 = Comment.create(title: "Comment 4", body: "Comment 4 body", post_id: p2.id)
-co5 = Comment.create(title: "Comment 5", body: "Comment 5 body", post_id: p2.id)
-co6 = Comment.create(title: "Comment 6", body: "Comment 6 body", post_id: p2.id)
+co1 = Comment.create(title: "Comment 1", body: "Comment 1 body", post_id: p1.id, name: @u1.name, email: @u1.email)
+co2 = Comment.create(title: "Comment 2", body: "Comment 2 body", post_id: p1.id, name: @u2.name, email: @u2.email)
+co3 = Comment.create(title: "Comment 3", body: "Comment 3 body", post_id: p1.id, name: @u3.name, email: @u3.email)
+co4 = Comment.create(title: "Comment 4", body: "Comment 4 body", post_id: p2.id, name: @u1.name, email: @u1.email)
+co5 = Comment.create(title: "Comment 5", body: "Comment 5 body", post_id: p2.id, name: @u2.name, email: @u2.email)
+co6 = Comment.create(title: "Comment 6", body: "Comment 6 body", post_id: p2.id, name: @u3.name, email: @u3.email)
