@@ -200,7 +200,7 @@ class SequelAuditedPluginTest < Minitest::Spec
             ::AuditLog.where(item_type: "Post").destroy
             ::DB[:blog_posts].delete
             @p = nil
-            @p = Class.new(Post)
+            @p = Class.new(BlogPost)
             @p.plugin(:audited, only: [:title, :author_id])
           end
 
@@ -213,12 +213,12 @@ class SequelAuditedPluginTest < Minitest::Spec
           end
 
           it "#.versions should only store the :title for update versions" do
-            Post.plugin(:audited, only: [:title, :author_id])
-            p = Post.create(title: "Post Title", body: "Post Body", category_id: 1, author: current_user())
+            BlogPost.plugin(:audited, only: [:title, :author_id])
+            p = BlogPost.create(title: "should only store the :title for update versions", body: "Post Body", category_id: 1, author: current_user())
             p.versions.count.must_equal 1
             # puts "\nTesting Post.versions: [#{p.versions.inspect}]\n"
             p.update(title: "Post Title Updated [:title, :author_id]", author: audited_user() )
-            puts "\nTesting Post after update: [#{p.inspect}]\n"
+            # puts "\nTesting Post after update: [#{p.inspect}]\n"
             # puts "\nTesting Post.versions after update: [#{p.versions.inspect}]\n"
             p.versions.count.must_equal 2
             v = p.versions.last
