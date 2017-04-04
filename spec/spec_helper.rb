@@ -1,3 +1,4 @@
+
 require "dotenv"
 Dotenv.load(File.expand_path("../../.env.test", __FILE__))
 
@@ -27,6 +28,7 @@ require "minitest/assert_errors"
 require "minitest/rg"
 
 Sequel.extension(:core_extensions)
+Sequel.extension(:blank)
 # Auto-manage created_at/updated_at fields
 Sequel::Model.plugin(:timestamps)
 # add a unique uuid token to each record. Used by sequel-audited
