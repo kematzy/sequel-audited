@@ -80,6 +80,7 @@ DB.create_table!(:posts) do
   column :category_id,      :integer, default: 1
   column :title,            :text
   column :body,             :text
+  column :urlslug,          :text, unique: true
   column :author_id,        :integer
   # timestamps
   column :created_at,       :timestamp
@@ -92,6 +93,7 @@ DB.create_table!(:blog_posts) do
   column :category_id,      :integer, default: 1
   column :title,            :text
   column :body,             :text
+  column :urlslug,          :text, unique: true
   column :author_id,        :integer
   # timestamps
   column :created_at,       :timestamp
@@ -103,6 +105,7 @@ DB.create_table!(:categories) do
   primary_key :id
   column :name,             :text
   column :position,         :integer, default: 1
+  column :urlslug,          :text, unique: true
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
@@ -123,6 +126,7 @@ end
 DB.create_table!(:authors) do
   primary_key               :id
   column :name,             :text
+  column :urlslug,          :text, unique: true
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
@@ -140,12 +144,20 @@ class Post < Sequel::Model
   one_to_many  :comments
   many_to_many :categories
   # one_to_one   :main_author, :class=>:Author, :order=>:id
+  def before_validation
+    self.urlslug = title.to_s.downcase.gsub(%r{(\s+|\?|\:|\\|/)}, "-") if urlslug.blank?
+    super
+  end
 end
 
 class BlogPost < Sequel::Model
   many_to_one  :author
   one_to_many  :comments
   many_to_many :categories
+  def before_validation
+    self.urlslug = title.to_s.downcase.gsub(%r{(\s+|\?|\:|\\|/)}, "-") if urlslug.blank?
+    super
+  end
 end
 
 class Comment < Sequel::Model
@@ -154,10 +166,18 @@ end
 
 class Author < Sequel::Model
   one_to_many  :posts
+  def before_validation
+    self.urlslug = name.to_s.downcase.gsub(%r{(\s+|\?|\:|\\|/)}, "-") if urlslug.blank?
+    super
+  end
 end
 
 class Category < Sequel::Model
   many_to_many :posts
+  def before_validation
+    self.urlslug = name.to_s.downcase.gsub(%r{(\s+|\?|\:|\\|/)}, "-") if urlslug.blank?
+    super
+  end
 end
 
 #  create the user accounts

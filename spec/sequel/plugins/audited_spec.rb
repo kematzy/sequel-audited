@@ -62,7 +62,7 @@ class SequelAuditedPluginTest < Minitest::Spec
       describe "#audited_columns" do
 
         it "should include all fields, excluding default ignored attributes" do
-          @p.audited_columns.must_equal [:id, :category_id, :title, :body, :author_id, :uuid]
+          @p.audited_columns.must_equal [:id, :category_id, :title, :body, :urlslug, :author_id, :uuid]
         end
 
       end
@@ -239,7 +239,7 @@ class SequelAuditedPluginTest < Minitest::Spec
           end
 
           it "#.audited_columns should include all columns except the named column" do
-            @p.audited_columns.must_equal([:id, :category_id, :body, :author_id, :uuid])
+            @p.audited_columns.must_equal([:id, :category_id, :body, :urlslug, :author_id, :uuid])
           end
 
           it "#.non_audited_columns should include the named column" do
@@ -278,7 +278,7 @@ class SequelAuditedPluginTest < Minitest::Spec
           end
 
           it "#.audited_columns should include all columns except the named column" do
-            @p.audited_columns.must_equal([:id, :category_id, :body, :author_id, :uuid])
+            @p.audited_columns.must_equal([:id, :category_id, :body, :urlslug, :author_id, :uuid])
           end
 
           it "#.non_audited_columns should include the named column" do
@@ -296,7 +296,7 @@ class SequelAuditedPluginTest < Minitest::Spec
           end
 
           it "#.audited_columns should include only the excepted columns" do
-            @p.audited_columns.must_equal([:id, :category_id, :body, :uuid])
+            @p.audited_columns.must_equal([:id, :category_id, :body, :urlslug, :uuid])
           end
 
           it "#.non_audited_columns should include the excluded columns" do
@@ -319,7 +319,7 @@ class SequelAuditedPluginTest < Minitest::Spec
         end
 
         it "#audited_columns should return the correct columns" do
-          @p.audited_columns.must_equal [:id, :category_id, :body, :created_at, :updated_at, :uuid]
+          @p.audited_columns.must_equal [:id, :category_id, :body, :urlslug, :created_at, :updated_at, :uuid]
         end
 
         it "#audited_ignored_columns should return the correct ignored columns" do
