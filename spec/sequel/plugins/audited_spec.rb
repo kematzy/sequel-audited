@@ -94,7 +94,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
         it "should use the :current_user User for versions" do
           Category.plugin(:audited)
-          c = Category.create(name: "Category 5")
+          c = Category.create(name: "Category #audited_current_user_method")
           # c.must_equal ''
           assert c.valid?
           v = c.versions.first

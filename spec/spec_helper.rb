@@ -76,7 +76,7 @@ end
 
 
 DB.create_table!(:posts) do
-  primary_key  :id
+  primary_key :id
   column :category_id,      :integer, default: 1
   column :title,            :text
   column :body,             :text
@@ -135,7 +135,6 @@ DB.create_table!(:authors) do
   column :updated_at,       :timestamp
   column :uuid,             :text
 end
-
 
 require "sequel/audited"
 
