@@ -111,6 +111,7 @@ class SequelAuditedPluginTest < Minitest::Spec
       describe "Post.plugin(:audited, :user_method => :audited_user)" do
         before do
           ::AuditLog.where(item_type: "Category").destroy
+          ::DB[:categories].delete
           @p = Class.new(Post)
           @p.plugin(:audited, user_method: :audited_user)
         end
@@ -139,6 +140,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
           before do
             ::AuditLog.where(item_type: "Post").destroy
+            ::DB[:posts].delete
             @p = nil
             @p = Class.new(Post)
             @p.plugin(:audited, only: :title)
@@ -177,7 +179,6 @@ class SequelAuditedPluginTest < Minitest::Spec
         describe "only: [:title]" do
 
           before do
-            ::AuditLog.where(item_type: "Post").destroy
             @p = nil
             @p = Class.new(Post)
             @p.plugin(:audited, only: [:title])
@@ -197,6 +198,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
           before do
             ::AuditLog.where(item_type: "Post").destroy
+            ::DB[:blog_posts].delete
             @p = nil
             @p = Class.new(Post)
             @p.plugin(:audited, only: [:title, :author_id])
@@ -233,7 +235,7 @@ class SequelAuditedPluginTest < Minitest::Spec
         describe ":except => :title" do
 
           before do
-            ::AuditLog.where(item_type: "Post").destroy
+            # ::AuditLog.where(item_type: "Post").destroy
             @p = Class.new(Post)
             @p.plugin(:audited, except: :title)
           end
@@ -272,7 +274,7 @@ class SequelAuditedPluginTest < Minitest::Spec
         describe "except: [:title]" do
 
           before do
-            ::AuditLog.where(item_type: "Post").destroy
+            # ::AuditLog.where(item_type: "Post").destroy
             @p = Class.new(Post)
             @p.plugin(:audited, except: [:title])
           end
@@ -290,7 +292,7 @@ class SequelAuditedPluginTest < Minitest::Spec
         describe "except: [:title,:author_id]" do
 
           before do
-            ::AuditLog.where(item_type: "Post").destroy
+            # ::AuditLog.where(item_type: "Post").destroy
             @p = Class.new(Post)
             @p.plugin(:audited, except: [:title, :author_id])
           end
@@ -309,7 +311,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
       describe "Post.plugin(:audited, :default_ignored_columns => [])" do
         before do
-          ::AuditLog.where(item_type: "Post").destroy
+          # ::AuditLog.where(item_type: "Post").destroy
           @p = Class.new(Post)
           @p.plugin(:audited, default_ignored_columns: [:title, :author_id])
         end
@@ -343,6 +345,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
       describe "#.audited_versions?" do
         before do
+          ::DB[:authors].delete
           ::AuditLog.where(item_type: "Author").delete
         end
 
@@ -394,6 +397,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
         describe "without options" do
           before do
+            ::DB[:authors].delete
             ::AuditLog.where(item_type: "Author").delete
           end
 
@@ -416,6 +420,8 @@ class SequelAuditedPluginTest < Minitest::Spec
         describe "with options" do
 
           before do
+            ::DB[:authors].delete
+            ::DB[:categories].delete
             ::AuditLog.where(item_type: "Author").destroy
             ::AuditLog.where(item_type: "Category").destroy
 
@@ -491,6 +497,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
       describe "#.blame (aliased as: #.last_audited_by)" do
         before do
+          ::DB[:authors].delete
           ::AuditLog.where(item_type: "Author").destroy
         end
 
@@ -510,6 +517,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
       describe "#.last_audited_at (aliased as: #.last_audited_on)" do
         before do
+          ::DB[:authors].delete
           ::AuditLog.where(item_type: "Author").destroy
         end
 
@@ -529,6 +537,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
       describe "Hooks" do
         before do
+          ::DB[:categories].delete
           ::AuditLog.where(item_type: "Category").destroy
           Category.plugin(:audited, only: [:name])
         end
@@ -555,6 +564,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
         describe "when updating a record, triggering #.after_update" do
           before do
+            ::DB[:categories].delete
             ::AuditLog.where(item_type: "Category").destroy
           end
 
@@ -579,6 +589,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
         describe "when destroying a record, triggering #.after_destroy" do
           before do
+            ::DB[:categories].delete
             ::AuditLog.where(item_type: "Category").destroy
           end
 
@@ -613,6 +624,7 @@ class SequelAuditedPluginTest < Minitest::Spec
       it { assert_association_one_to_many(Author.new, :versions) }
 
       before do
+        ::DB[:authors].delete
         ::AuditLog.where(item_type: "User").destroy
         ::AuditLog.where(item_type: "Author").destroy
         @u = User.create(username: "johnblogs", name: "John Blogs", email: "john@blogs.com")
@@ -647,6 +659,7 @@ class SequelAuditedPluginTest < Minitest::Spec
 
   describe "with Custom user method" do
     before do
+      ::DB[:authors].delete
       ::AuditLog.where(item_type: "Author").destroy
       Author.plugin(:audited, only: :name, user_method: :audited_user)
     end
