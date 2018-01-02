@@ -25,7 +25,7 @@ class AuditLog < Sequel::Model
       m = Kernel.const_get(item_type)
       send(m.audited_current_user_method)
     rescue NoMethodError
-      OpenStruct.new(id: 99, username: "system", name: "System Migration")
+      OpenStruct.new(id: "394d9d14-0c8c-4711-96c1-2c3fc90dd671", username: "system", name: "System Migration")
     # end
   end
 
@@ -105,7 +105,7 @@ module Sequel
           @audited_ignored_columns  = excluded_columns
 
           # create versions association
-          one_to_many :versions, class: audit_model_name, key: :item_uuid, primary_key: :uuid
+          one_to_many :versions, class: audit_model_name, key: :item_uuid, primary_key: :id
         end # /.instance_eval
       end # /.configure
 

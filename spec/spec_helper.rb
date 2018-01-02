@@ -34,7 +34,7 @@ Sequel.extension(:blank)
 # Auto-manage created_at/updated_at fields
 Sequel::Model.plugin(:timestamps)
 # add a unique uuid token to each record. Used by sequel-audited
-Sequel::Model.plugin(:uuid)
+# Sequel::Model.plugin(:uuid, field: :id)
 #
 Sequel.extension(:pg_json_ops)
 
@@ -52,11 +52,11 @@ puts "Using DB=[#{ENV['DATABASE_URL']}]"
 
 
 DB.create_table!(:users) do
-  primary_key :id
+  primary_key :id, :uuid #, null: false
   column :username,         :text
   column :name,             :text
   column :email,            :text
-  column :uuid,             :text
+  # column :uuid,             :text
 end
 
 DB.create_table!(:audit_logs) do
@@ -64,12 +64,12 @@ DB.create_table!(:audit_logs) do
   column :event,            :text
 
   column :item_type,        :text
-  column :item_uuid,        :text
+  column :item_uuid,        :uuid
   column :version,          :integer, default: 0
 
   column :event_data,       :json
 
-  column :user_id,          :integer
+  column :user_id,          :uuid
   column :username,         :text
   column :user_type,        :text, default: "User"
 
@@ -78,45 +78,42 @@ end
 
 
 DB.create_table!(:posts) do
-  primary_key :id
-  column :category_id,      :integer, default: 1
+  primary_key :id, :uuid
+  column :category_id,      :uuid
   column :title,            :text
   column :body,             :text
   column :urlslug,          :text, unique: true
-  column :author_id,        :integer
+  column :author_id,        :uuid
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
-  column :uuid,             :text
 end
 
 DB.create_table!(:blog_posts) do
-  primary_key :id
-  column :category_id,      :integer, default: 1
+  primary_key :id, :uuid
+  column :author_id,        :uuid
+  column :category_id,      :uuid
   column :title,            :text
   column :body,             :text
   column :urlslug,          :text, unique: true
-  column :author_id,        :integer
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
-  column :uuid,             :text
 end
 
 DB.create_table!(:categories) do
-  primary_key :id
+  primary_key :id, :uuid
   column :name,             :text
   column :position,         :integer, default: 1
   column :urlslug,          :text, unique: true
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
-  column :uuid,             :text
 end
 
 DB.create_table!(:comments) do
-  primary_key :id
-  column :post_id,          :integer, default: 1
+  primary_key :id, :uuid
+  column :post_id,          :uuid
   column :title,            :text
   column :body,             :text
   column :name,             :text
@@ -125,28 +122,28 @@ DB.create_table!(:comments) do
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
-  column :uuid,             :text
 end
 
 DB.create_table!(:authors) do
-  primary_key               :id
+  primary_key :id, :uuid
   column :name,             :text
   column :urlslug,          :text, unique: true
   # timestamps
   column :created_at,       :timestamp
   column :updated_at,       :timestamp
-  column :uuid,             :text
 end
 
 require "sequel/audited"
 
 class User < Sequel::Model
+  plugin(:uuid, field: :id)
 end
 
 class Post < Sequel::Model
-  many_to_one  :author
-  one_to_many  :comments
-  many_to_many :categories
+  plugin(:uuid, field: :id)
+  many_to_one  :author, keys: [:author_id]
+  one_to_many  :comments, keys: [:comment_id]
+  many_to_one  :category, keys: [:category_id]
   # one_to_one   :main_author, :class=>:Author, :order=>:id
   def before_validation
     self.urlslug = title.to_s.downcase.gsub(%r{(\s+|\?|\:|\\|/)}, "-") if urlslug.blank?
@@ -155,9 +152,10 @@ class Post < Sequel::Model
 end
 
 class BlogPost < Sequel::Model
-  many_to_one  :author
-  one_to_many  :comments
-  many_to_many :categories
+  plugin(:uuid, field: :id)
+  many_to_one  :author, keys: [:author_id]
+  one_to_many  :comments, keys: [:comment_id]
+  many_to_one  :category, keys: [:category_id]
   def before_validation
     self.urlslug = title.to_s.downcase.gsub(%r{(\s+|\?|\:|\\|/)}, "-") if urlslug.blank?
     super
@@ -165,11 +163,13 @@ class BlogPost < Sequel::Model
 end
 
 class Comment < Sequel::Model
-  many_to_one  :post
+  plugin(:uuid, field: :id)
+  many_to_one  :post, keys: [:comment_id]
 end
 
 class Author < Sequel::Model
-  one_to_many  :posts
+  plugin(:uuid, field: :id)
+  one_to_many  :posts, keys: [:author_id]
   def before_validation
     self.urlslug = name.to_s.downcase.gsub(%r{(\s+|\?|\:|\\|/)}, "-") if urlslug.blank?
     super
@@ -177,7 +177,8 @@ class Author < Sequel::Model
 end
 
 class Category < Sequel::Model
-  many_to_many :posts
+  plugin(:uuid, field: :id)
+  many_to_many :posts, keys: [:category_id]
   def before_validation
     self.urlslug = name.to_s.downcase.gsub(%r{(\s+|\?|\:|\\|/)}, "-") if urlslug.blank?
     super
