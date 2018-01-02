@@ -23,12 +23,10 @@ class AuditLog < Sequel::Model
   #
   # NOTE! this allows overriding the default value on a per audited model
   def audit_user
-    # begin
-      m = Kernel.const_get(item_type)
-      send(m.audited_current_user_method)
+    m = Kernel.const_get(item_type)
+    send(m.audited_current_user_method)
     rescue NoMethodError
-      OpenStruct.new(id: "394d9d14-0c8c-4711-96c1-2c3fc90dd671", username: "system", name: "System Migration")
-    # end
+    OpenStruct.new(id: "394d9d14-0c8c-4711-96c1-2c3fc90dd671", username: "system", name: "System Migration")
   end
 
 end
