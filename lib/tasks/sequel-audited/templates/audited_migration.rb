@@ -3,45 +3,37 @@ Sequel.migration do
   
   change do
     
-    create_table(:audited_logs) do
+    create_table(:audit_logs) do
       primary_key :id
-      column :model,            :string
-      column :model_pk,         :string
-      column :event,            :string
-      column :changed,          :text
-      column :version,          :integer, default: 0
-      column :user_id,          :integer
-      column :username,         :string
-      column :user_type,        :string, default: :User
-      column :created_at,       :datetime
+      # used to track create/updates/deletes
+      column :event,            :text
+      # the audited model's type  [NB! used for versioning only ]
+      column :item_type,        :text
+      # the audited model's unique uuid key as string  [NB! used for versioning only]
+      column :item_uuid,        :uuid
       
+      # JSON object of the audited object
+      column :changed,          :json
       
-      # column :audited_id,       :integer
-      # column :audited_type,     :string
-      # column :associated_id,    :integer
-      # column :associated_type,  :string
-      # column :action,           :string
+      # the version of the audited object. Scoped on model_type & model_pk
+      column :version,          :integer
       
-      # column :auditable_id,     :integer
-      # column :auditable_type,   :string
-      # column :associated_id,    :integer
-      # column :associated_type,  :string
-      # column :user_id,          :integer
-      # column :user_type,        :string
-      # column :username,         :string
-      # column :action,           :string
-      # column :audited_changes,  :text
-      # column :version,          :integer, :default => 0
-      # column :comment,          :string
-      # column :remote_address,   :string
-      # column :request_uuid,     :string
-      # column :created_at,       :datetime
+      # who audited the model?
+      # tracks the user id (primary key) 
+      column :user_id,          :uuid
+      # tracks the username
+      column :username,         :text
+      # allows for tracking of User, Client, Author, etc named models
+      column :user_type,        :text
+      
+      # timestamp when the record was created
+      column :created_at,       :timestamp
+      
       #
       # add_index :audits, [:auditable_id, :auditable_type], :name => 'auditable_index'
       # add_index :audits, [:associated_id, :associated_type], :name => 'associated_index'
       # add_index :audits, [:user_id, :user_type], :name => 'user_index'
-      # add_index :audits, :request_uuid
-      add_index :audits, :created_at
+      # add_index :audits, :created_at
       
     end
     

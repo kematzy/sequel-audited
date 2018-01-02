@@ -1,5 +1,5 @@
-require 'sequel'
-require 'sequel/audited/version'
+require "sequel"
+require "sequel/audited/version"
 
 module Sequel
   
