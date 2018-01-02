@@ -728,4 +728,21 @@ class SequelAuditedPluginTest < Minitest::Spec
 
   end
 
+  describe "invalid current_user_method" do
+    before do
+      class ::Post21 < Post; end
+      ::Post21.plugin(:audited, user_method: :does_not_exist)
+    end
+
+    it "should handle a missing/invalid :user_method by using default values" do
+      p = ::Post21.create(title: "Post21 Testing invalid user method", body: "Post body")
+      assert p.valid?
+      v = p.versions.first
+      v.user_id.must_equal "394d9d14-0c8c-4711-96c1-2c3fc90dd671"
+      v.username.must_equal "system"
+      v.user_type.must_equal "OpenStruct"
+    end
+  
+  end
 end
+
