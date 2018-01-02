@@ -8,10 +8,12 @@ class AuditLog < Sequel::Model
 
   def before_validation
     # grab the current user
-    u = audit_user
-    self.user_id    = u.id
-    self.username   = u.username
-    self.user_type  = u.class.name ||= :User
+    if u = audit_user
+      self.user_id    = u.id
+      self.username   = u.username
+      self.user_type  = u.class.name ||= :User
+    end
+    super
   end
 
   # private
