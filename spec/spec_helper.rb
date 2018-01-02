@@ -190,8 +190,8 @@ end
 @u3 = User.create(username: "auditeduser", name: "Audited User", email: "auditeduser@blogs.com")
 
 # set global variables for these tests only
-$current_user = @u1
-$audited_user = @u3
+# $current_user = @u1
+# $audited_user = @u3
 
 def current_user
   $current_user
