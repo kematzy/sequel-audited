@@ -226,53 +226,59 @@ module Sequel
           v ? v.created_at : "not audited"
         end
         alias_method :last_audited_on, :last_audited_at
-
+        
         private
+        
+        # 
+        def audited_json(event)
+          case event
+          when "create"
+            # store all values on create
+            self.values.to_json
+          when "update"
+            # store only audited columns (skip ignored columns)
+            cols_changed = column_changes.empty? ? previous_changes : column_changes
+            changes = {}
+            cols_changed.keys.each do |ck|
+              changes[ck.to_sym] = cols_changed[ck.to_sym] if self.class.audited_columns.include?(ck.to_sym)
+            end
+            # pass nil if no changes
+            changes.empty? ? nil : changes.to_json
+          when "destroy"
+            # store all values on destroy
+            self.values.to_json
+          end
+        end
+
+        # 
+        def add_audited(event)
+          changed_items = audited_json(event)
+          unless changed_items.blank?
+            add_version(
+              item_type:  model,
+              item_uuid:  pk,
+              event:      event,
+              changed:    changed_items
+            )
+          end
+        end
+
 
         ### CALLBACKS ###
 
         def after_create
           super
-          # puts "-- after_create => [#{self.inspect}] self.class.audited_columns=[#{self.class.audited_columns.inspect}]"
-          # store all values on create
-          changes = self.values
-
-          add_version(
-            item_type:  model,
-            item_uuid:  uuid,
-            event:      "create",
-            event_data: changes.to_json
-          )
+          add_audited("create")
         end
 
         def after_update
           super
-          # extract changed columns
-          changed = @columns_updated.empty? ? previous_changes : @columns_updated
-          # store only audited columns (skip ignored columns)
-          changes = {}
-          changed.keys.each do |cv|
-            changes[cv.to_sym] = changed[cv.to_sym] if self.class.audited_columns.include?(cv.to_sym)
-          end
-
-          add_version(
-            item_type:   model,
-            item_uuid:   uuid,
-            event:       "update",
-            event_data:  changes.to_json
-          ) unless changes.empty? # do not store empty changes
+          add_audited("update")
         end
 
         def after_destroy
           super
-          # store all values on destroy
-          changes = self.values
-          add_version(
-            item_type:    model,
-            item_uuid:    uuid,
-            event:        "destroy",
-            event_data:   changes.to_json
-          )
+          add_audited("destroy")
         end
 
       end
