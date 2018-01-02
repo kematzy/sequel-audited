@@ -10,21 +10,21 @@ Sequel.migration do
       # the audited model's type  [NB! used for versioning only ]
       column :item_type,        :text
       # the audited model's unique uuid key as string  [NB! used for versioning only]
-      column :item_uuid,        :text
+      column :item_uuid,        :uuid
       
       # JSON object of the audited object
-      column :event_data,       :json
+      column :changed,          :json
       
       # the version of the audited object. Scoped on model_type & model_pk
-      column :version,          :integer, default: 0
+      column :version,          :integer
       
       # who audited the model?
       # tracks the user id (primary key) 
-      column :user_id,          :integer
+      column :user_id,          :uuid
       # tracks the username
       column :username,         :text
       # allows for tracking of User, Client, Author, etc named models
-      column :user_type,        :text, default: "User"
+      column :user_type,        :text
       
       # timestamp when the record was created
       column :created_at,       :timestamp
