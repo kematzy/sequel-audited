@@ -15,8 +15,8 @@ require "rubygems"
 require "pg"
 require "json"
 
-require "minitest/sequel"
 require "minitest/autorun"
+require "minitest/sequel"
 require "minitest/hooks/default"
 class Minitest::HooksSpec
   def around

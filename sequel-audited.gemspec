@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "minitest-rg"
   spec.add_development_dependency "minitest-assert_errors"
   spec.add_development_dependency "minitest-hooks"
-  spec.add_development_dependency "minitest-sequel"
+  spec.add_development_dependency "minitest-sequel", ">= 0.3.2"
 
   spec.add_development_dependency "pg"
   spec.add_development_dependency "sqlite3"
