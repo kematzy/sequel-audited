@@ -11,7 +11,6 @@ end
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 
 require "rubygems"
-# require 'sqlite3'
 require "pg"
 require "json"
 
@@ -19,8 +18,11 @@ require "minitest/autorun"
 require "minitest/sequel"
 require "minitest/hooks/default"
 class Minitest::HooksSpec
-  def around
-    Sequel::Model.db.transaction(rollback: :always, auto_savepoint: true) { super }
+  around(:all) do |&block|
+    DB.transaction(rollback: :always) { super(&block) }
+  end
+  around do |&block|
+    DB.transaction(rollback: :always, savepoint: true, auto_savepoint: true) { super(&block) }
   end
 end
 
