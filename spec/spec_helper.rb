@@ -202,22 +202,22 @@ end
 
 ### DB SEEDS ###
 
-ca1 = Category.create(name: "Category 1")
-ca2 = Category.create(name: "Category 2")
-ca3 = Category.create(name: "Category 3")
-ca4 = Category.create(name: "Category 4")
+# ca1 = Category.create(name: "Category 1")
+# ca2 = Category.create(name: "Category 2")
+# ca3 = Category.create(name: "Category 3")
+# ca4 = Category.create(name: "Category 4")
 
-a1 = Author.create(name: "Author 1")
-a2 = Author.create(name: "Author 2")
+# a1 = Author.create(name: "Author 1")
+# a2 = Author.create(name: "Author 2")
 
-p1 = Post.create(title: "Post 1", author_id: a1.id, category_id: ca1.id)
-p2 = Post.create(title: "Post 2", author_id: a1.id, category_id: ca2.id)
-p3 = Post.create(title: "Post 3", author_id: a2.id, category_id: ca3.id)
-p4 = Post.create(title: "Post 4", author_id: a2.id, category_id: ca4.id)
+# p1 = Post.create(title: "Post 1", author_id: a1.id, category_id: ca1.id)
+# p2 = Post.create(title: "Post 2", author_id: a1.id, category_id: ca2.id)
+# p3 = Post.create(title: "Post 3", author_id: a2.id, category_id: ca3.id)
+# p4 = Post.create(title: "Post 4", author_id: a2.id, category_id: ca4.id)
 
-co1 = Comment.create(title: "Comment 1", body: "Comment 1 body", post_id: p1.id, name: @u1.name, email: @u1.email)
-co2 = Comment.create(title: "Comment 2", body: "Comment 2 body", post_id: p1.id, name: @u2.name, email: @u2.email)
-co3 = Comment.create(title: "Comment 3", body: "Comment 3 body", post_id: p1.id, name: @u3.name, email: @u3.email)
-co4 = Comment.create(title: "Comment 4", body: "Comment 4 body", post_id: p2.id, name: @u1.name, email: @u1.email)
-co5 = Comment.create(title: "Comment 5", body: "Comment 5 body", post_id: p2.id, name: @u2.name, email: @u2.email)
-co6 = Comment.create(title: "Comment 6", body: "Comment 6 body", post_id: p2.id, name: @u3.name, email: @u3.email)
+# co1 = Comment.create(title: "Comment 1", body: "Comment 1 body", post_id: p1.id, name: @u1.name, email: @u1.email)
+# co2 = Comment.create(title: "Comment 2", body: "Comment 2 body", post_id: p1.id, name: @u2.name, email: @u2.email)
+# co3 = Comment.create(title: "Comment 3", body: "Comment 3 body", post_id: p1.id, name: @u3.name, email: @u3.email)
+# co4 = Comment.create(title: "Comment 4", body: "Comment 4 body", post_id: p2.id, name: @u1.name, email: @u1.email)
+# co5 = Comment.create(title: "Comment 5", body: "Comment 5 body", post_id: p2.id, name: @u2.name, email: @u2.email)
+# co6 = Comment.create(title: "Comment 6", body: "Comment 6 body", post_id: p2.id, name: @u3.name, email: @u3.email)
