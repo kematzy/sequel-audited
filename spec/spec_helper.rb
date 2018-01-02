@@ -65,7 +65,7 @@ DB.create_table!(:audit_logs) do
 
   column :item_type,        :text
   column :item_uuid,        :uuid
-  column :version,          :integer, default: 0
+  column :version,          :integer
   column :changed,          :json
 
   column :user_id,          :uuid
