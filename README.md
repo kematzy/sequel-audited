@@ -19,6 +19,14 @@ You have been warned! No warranties and guarantees expressed or implied!
 
 Having said that, the code base has 100% code coverage and I believe all significant tests pass.
 
+<br>
+
+### Version 0.2.x
+
+Version 0.2.x have various breaking changes and makes even more assumptions based upon my usage scenario.
+So your milage may vary.
+
+
 ----
 
 <br>
@@ -31,7 +39,7 @@ Add this line to your app's Gemfile:
 
 
 ```ruby
-gem 'sequel-audited'
+gem "sequel-audited"
 ```
 
 And then execute:
@@ -52,7 +60,7 @@ $ gem install sequel-audited
 In your apps Rakefile add the following:
 
 ```ruby
-load 'tasks/sequel-audited/migrate.rake'
+load "tasks/sequel-audited/migrate.rake"
 ```
 
 Then verify that the Rake task is available by calling:
@@ -87,19 +95,23 @@ bundle exec rake db:migrate
 You need to add the `:uuid` plugin to models as follows:
 
 ```ruby
- # add a unique uuid token to each record. Used by sequel-audited
- Sequel::Model.plugin(:uuid)
+class YourModel < Sequel::Model
+  # convert the :id primary key to a unique UUID token, for greater record security
+  plugin(:uuid, field: :id)
+end
 ```
 
-...and add a :uuid column to your model migrations (below) to store the unique uuid key for each model.
+...and change the `primary_key :id`, column to a `:uuid` formatted column in your model migrations.
 
 ```ruby
   ...
-  column :uuid,             :text
-  ...
+  create_table(:your_model) do
+    primary_key :id, :uuid
+    ...
+  end
 ```
 
-**SideNote**:  I'm using `:uuid` keys here for safer tracking of model records and to circumvent any primary key issues due to `integer` or `string` keys and casting of those within the DB.
+**SideNote**:  I'm using `:uuid` keys here for safer tracking of model records and to circumvent any primary key issues due to `integer` or `string` keys and wrong casting of those within the DB.
 
 <br>
 
@@ -123,10 +135,10 @@ and the `:pg_json` extension after the DB connection call.
 
 ### IMPORTANT SIDENOTE!
 
-If you are using PostgreSQL as your database, then it's a good idea to convert the  the `event_data` 
-column to JSON type for automatic translations into a Ruby hash.
+If you are using PostgreSQL as your database, then it's a good idea to convert the  the `changed` 
+column to the `JSON` type for automatic translations into a Ruby hash.
 
-Otherwise, you have to use `JSON.parse(@v.event_data)` to convert it to a hash if and when you want 
+Otherwise, you have to use `JSON.parse(@v.changed)` to convert it to a hash if and when you want 
 to use it.
 
 <br>
@@ -137,16 +149,25 @@ to use it.
 ## Usage
 
 
-Using this plugin is fairly simple and straight-forward.  Just add it to the model you wish to 
+Using this plugin is fairly simple and straight-forward.  Just add it to the individual models you wish to 
 have audits (versions) for.
 
 ```ruby
  # auditing single model
- Post.plugin :audited
+ class Post < Sequel::Model
+   plugin(:audited)
+ end
+```
 
- # auditing all models. NOT RECOMMENDED!
+### GOTCHA!!
+
+Do NOT add the plugin globally to all models, as things will likely not work properly.
+
+```ruby
+ # auditing all models. VERY BAD INDEED!! DO NOT DO!
  Sequel::Model.plugin :audited
 ```
+
 
 By default this will audit / version all columns on the model, **except** the default ignored columns configured in `Sequel::Audited.audited_default_ignored_columns` (see [Configuration Options](#configuration-options) below).
 
@@ -159,8 +180,7 @@ By default this will audit / version all columns on the model, **except** the de
  [:id, :category_id, :title, :body, :author_id, :created_at, :updated_at]
  
  # Auditing all columns*
- 
- Post.plugin :audited 
+  Post.plugin :audited 
    
    #=> [:id, :category_id, :title, :body, :author_id] # audited columns
    #=> [:created_at, :updated_at]  # ignored columns
@@ -173,7 +193,7 @@ By default this will audit / version all columns on the model, **except** the de
 ```ruby
 # Auditing a Single column
   
-  Post.plugin :audited, only: [:title]
+  Post.plugin(:audited, only: :title)
     
     #=> [:title] # audited columns
     #=> [:id, :category_id, :body, :author_id, :created_at, :updated_at] # ignored columns
@@ -181,7 +201,7 @@ By default this will audit / version all columns on the model, **except** the de
       
 # Auditing Multiple columns
   
-  Post.plugin :audited, only: [:title, :body]
+  Post.plugin(:audited, only: [:title, :body])
     #=> [:title, :body] # audited columns
     #=> [:id, :category_id, :author_id, :created_at, :updated_at] # ignored columns
     
@@ -195,13 +215,13 @@ By default this will audit / version all columns on the model, **except** the de
 ```ruby
 # Auditing all columns except specified columns
 
-  Post.plugin :audited, except: [:title]
+  Post.plugin(:audited, except: :title)
     
     #=> [:id, :category_id, :author_id, :created_at, :updated_at] # audited columns
     #=> [:title] # ignored columns
   
   
-  Post.plugin :audited, except: [:title, :author_id]
+  Post.plugin(:audited, except: [:title, :author_id])
     
     #=> [:id, :category_id, :created_at, :updated_at] # audited columns
     #=> [:title, :author_id] # ignored columns
@@ -242,9 +262,9 @@ Category.create(name: 'Sequel')
   :item_uuid => <UUID>, 
   :event => "create", 
   # NOTE! all model values are stored by default on new records.
-  :event_data => "{\"id\":1,\"name\":\"Sequel\",\"created_at\":\"<timestamp>\"}", 
+  :changed => "{\"id\":1,\"name\":\"Sequel\",\"created_at\":\"<timestamp>\"}", 
   :version => 1, 
-  :user_id => 88, 
+  :user_id => <uuid>, 
   :username => "joeblogs", 
   :user_type => "User", 
   :created_at => <timestamp>
@@ -256,6 +276,7 @@ Category.create(name: 'Sequel')
 When you update a record like this:
 
 ```ruby
+cat = Category.first
 cat.update(name: 'Ruby Sequel')
   #<Category @values={
     :id => 1, 
@@ -270,12 +291,12 @@ cat.update(name: 'Ruby Sequel')
 #<AuditLog @values={
   :id => 2, 
   :item_type => "Category", 
-  :item_uuid => <UUID>,
+  :item_uuid => <uuid>,
   :event => "update", 
   # NOTE! only the changes are stored
-  :event_data => "{\"name\":[\"Sequel\",\"Ruby Sequel\"]}", 
+  :changed => "{\"name\":[\"Sequel\",\"Ruby Sequel\"]}", 
   :version => 2, 
-  :user_id => 88, 
+  :user_id => <uuid>, 
   :username => "joeblogs", 
   :user_type => "User", 
   :created_at => <timestamp>
@@ -288,6 +309,7 @@ cat.update(name: 'Ruby Sequel')
 When you delete a record like this:
 
 ```ruby
+cat = Category.first
 cat.delete
 
 # in the background a new row in DB[:audit_logs] is added with the info:
@@ -295,12 +317,12 @@ cat.delete
 #<AuditLog @values={
   :id => 3, 
   :item_type => "Category", 
-  :item_uuid => <UUID>,
+  :item_uuid => <uuid>,
   :event => "destroy",
   # NOTE! all model values are stored by default on deleted records
-  :event_data => "{\"id\":1,\"name\":\"Ruby Sequel\",\"created_at\":\"<timestamp>\",\"updated_at\":\"<timestamp>\"}",
+  :changed => "{\"id\":1,\"name\":\"Ruby Sequel\",\"created_at\":\"<timestamp>\",\"updated_at\":\"<timestamp>\"}",
   :version => 3, 
-  :user_id => 88, 
+  :user_id => <uuid>, 
   :username => "joeblogs", 
   :user_type => "User", 
   :created_at => <timestamp>
@@ -335,7 +357,7 @@ You can easily change the name of this method by calling:
 Sequel::Audited.audited_current_user_method = :audited_user
 ```
     
-**Note!** the name of the function must be given as a symbol.
+**NOTE!** the name of the function must be given as a symbol.
 
 <br>    
 
@@ -346,7 +368,7 @@ Enables adding your own Audit model. Default is: `:AuditLog`
 ```ruby
 Sequel::Audited.audited_model_name = :YourCustomModel
 ```
-**Note!** the name of the model must be given as a symbol.
+**NOTE!** the name of the model must be given as a symbol.
 
 <br>
 
@@ -365,7 +387,7 @@ An array of columns that are ignored by default. Default value is:
 ```ruby
 [:lock_version, :created_at, :updated_at, :created_on, :updated_on]
 ```
-NOTE! `:timestamps` related columns must be ignored or you may end up with situation
+**NOTE!** `:timestamps` related columns must be ignored or you may end up with situation
 where an update triggers multiple copies of the record in the audit log.
 
 <br>
@@ -398,7 +420,7 @@ end
 ClientProfile.plugin(:audited, :user_method => :current_client)
 
 # then the user info will be taken from DB[:clients].
- #<Client @values={:id=>99,:username=>"happyclient"... }>
+ #<Client @values={:username=>"happyclient"... }>
  
 ```
 
@@ -439,20 +461,20 @@ Post.audited_versions?
 # grab all audits for a particular model. Returns an array.
 Post.audited_versions
   #=> [ 
-        { id: 1, item_type: 'Post', item_uuid: '<UUID>', version: 1, 
-          event: 'create',  event_data: "{JSON SERIALIZED OBJECT}", 
-          user_id: 88, username: "joeblogs", created_at: TIMESTAMP
+        { id: 1, item_type: 'Post', item_uuid: '<uuid>', version: 1, 
+          event: 'create',  changed: "{JSON SERIALIZED OBJECT}", 
+          user_id: <uuid>, username: "joeblogs", created_at: <timestamp>
         },
         {...}
        ]
 
 
 # filtered by uuid key value
-Posts.audited_versions(item_uuid: <UUID>)
+Posts.audited_versions(item_uuid: <uuid>)
 
 # filtered by user :id or :username value
-Posts.audited_versions(user_id: 88)
-Posts.audited_versions(username: 'joeblogs')
+Posts.audited_versions(user_id: user.id)
+Posts.audited_versions(username: "joeblogs")
 
 # filtered to last two (2) days only
 Posts.audited_versions(:created_at < Date.today - 2)
@@ -464,15 +486,15 @@ Posts.audited_versions(:created_at < Date.today - 2)
 2) Track all changes made by a user / user_group.
 
 ```ruby
-joe = User[88]
+joe = User[username: "joe"]
 
 joe.audited_versions  
   #=> returns all audits made by joe  
-    ['SELECT * FROM `audit_logs` WHERE user_id = 88 ORDER BY created_at DESC']
+    ['SELECT * FROM `audit_logs` WHERE username = "joe" ORDER BY created_at DESC']
 
 joe.audited_versions(:item_type => Post)
   #=> returns all audits made by joe on the Post model
-    ['SELECT * FROM `audit_logs` WHERE user_id = 88 AND item_type = 'Post' ORDER BY created_at DESC']
+    ['SELECT * FROM `audit_logs` WHERE username = "joe" AND item_type = 'Post' ORDER BY created_at DESC']
 ```
 
 
@@ -486,11 +508,11 @@ When you call `.plugin(:audited)` in your model, you get these methods:
 
 ```ruby
 class Post < Sequel::Model
-  plugin :audited   # options here
+  plugin(:audited)
 end
 
 # Returns this post's versions.
-post.versions  #=> []
+post.versions  #=> [<array of versions>]
 ```
 
 <br>
@@ -536,10 +558,10 @@ post.previous_version
 post.next_version
 
 
-# Turn Audited on for all posts.
+# Temporarily turn Audited on for all posts.
 post.audited_on!
 
-# Turn Audited off for all posts.
+# Temporarily turn Audited off for all posts.
 post.audited_off!
 ```
 
@@ -618,6 +640,7 @@ expected to adhere to the [Contributor Covenant](http://contributor-covenant.org
 ## License
 
 &copy; Copyright Kematzy, 2015 - 2016
+&copy; Copyright [Daniel Goh, 2017](https://github.com/tohchye)
 
 Heavily inspired by:
 
