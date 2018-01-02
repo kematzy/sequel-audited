@@ -70,7 +70,7 @@ DB.create_table!(:audit_logs) do
 
   column :user_id,          :uuid
   column :username,         :text
-  column :user_type,        :text, default: "User"
+  column :user_type,        :text
 
   column :created_at,       :timestamp
 end
@@ -103,7 +103,7 @@ end
 DB.create_table!(:categories) do
   primary_key :id, :uuid
   column :name,             :text
-  column :position,         :integer, default: 1
+  column :position,         :integer
   column :urlslug,          :text, unique: true
   # timestamps
   column :created_at,       :timestamp
