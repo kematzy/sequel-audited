@@ -639,7 +639,7 @@ expected to adhere to the [Contributor Covenant](http://contributor-covenant.org
 
 ## License
 
-&copy; Copyright Kematzy, 2015 - 2016
+&copy; Copyright Kematzy, 2015 - 2018 <br>
 &copy; Copyright [Daniel Goh, 2017](https://github.com/tohchye)
 
 Heavily inspired by:
