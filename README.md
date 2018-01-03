@@ -357,7 +357,19 @@ You can easily change the name of this method by calling:
 Sequel::Audited.audited_current_user_method = :audited_user
 ```
     
-**NOTE!** the name of the function must be given as a symbol.
+**NOTE!** 
+
+The name of the function must be given as a `:symbol`.
+
+You can also customize this method on a per model basis, since the code will first try to hit the method 
+on the model (i.e. Post) itself first. Then it will hit the global method.
+
+
+```ruby
+Post.audited_current_user_method = :current_author
+```
+
+However, you are better of using the `:user_method` plugin configuration highlighted below.
 
 <br>    
 
